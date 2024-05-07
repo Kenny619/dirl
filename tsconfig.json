@@ -1,0 +1,35 @@
+{
+	"compilerOptions": {
+		"forceConsistentCasingInFileNames": true,
+
+		//type checking https://www.typescriptlang.org/tsconfig#Type_Checking_6248
+		"strict": true,
+
+		//Modules https://www.typescriptlang.org/tsconfig#Modules_6244
+		//    "moduleResolution": "node",
+		//"module": "NodeNext",
+		"module": "NodeNext",
+		"types": ["vitest/globals"],
+		"baseUrl": ".",
+		"paths": {
+			"@types": ["./src/types/*"]
+		},
+
+		//emit https://www.typescriptlang.org/tsconfig#Emit_6246
+		"removeComments": true,
+		"noEmitOnError": true,
+		"sourceMap": true,
+		"outDir": "dist",
+
+		//Interop Constraints https://www.typescriptlang.org/tsconfig#Interop_Constraints_6252
+		"esModuleInterop": true,
+
+		//Lib https://www.typescriptlang.org/tsconfig#lib
+		"target": "ES2022",
+
+		//Completeness https://www.typescriptlang.org/tsconfig#Completeness_6257
+		"skipLibCheck": true
+	},
+	"include": ["src", "tests"],
+	"exclude": ["node_modules", "tests"]
+}

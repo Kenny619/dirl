@@ -1,0 +1,35 @@
+{
+	"name": "dirl",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "vitest",
+		"prebuild": "rimraf dist",
+		"build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json"
+	},
+	"type": "module",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Kenny619/dirl.git"
+	},
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/Kenny619/dirl.git"
+	},
+	"homepage": "https://github.com/Kenny619/dirl#readme",
+	"dependencies": {
+		"vite-tsconfig-paths": "^4.2.2"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^1.4.1",
+		"@types/node": "^20.11.7",
+		"rimraf": "^5.0.5",
+		"ts-jest": "^29.1.2",
+		"ts-node": "^10.9.2",
+		"tsc-alias": "^1.8.8",
+		"vite": "^5.0.9",
+		"vitest": "^1.5.2"
+	}
+}
