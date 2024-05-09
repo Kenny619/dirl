@@ -1,5 +1,5 @@
 import fsp from "node:fs/promises";
-import dirl from "../src/index";
+import dirl from "../index.js";
 import { describe, expect, test } from "vitest";
 
 /* scenarios
@@ -24,27 +24,21 @@ describe("Fn: strToRegExp", async () => {
 		const srcDir = "";
 		const dstDir = "";
 		const option: options = { mode: "copyDiff" };
-		await expect(dirl.move(srcDir, dstDir, option)).rejects.toThrow(
-			/not a valid directory/,
-		);
+		await expect(dirl.move(srcDir, dstDir, option)).rejects.toThrow(/not a valid directory/);
 	});
 
 	test("02. Invalid dstDir throws 'Failed to write to directory...' error", async () => {
 		const srcDir = "C:\\dev\\sandbox\\files\\src";
 		const dstDir = "I:\\sandbox\\dest";
 		const option: options = { mode: "copyDiff" };
-		await expect(dirl.move(srcDir, dstDir, option)).rejects.toThrow(
-			/Failed to write to directory/i,
-		);
+		await expect(dirl.move(srcDir, dstDir, option)).rejects.toThrow(/Failed to write to directory/i);
 	});
 
 	test("03. Invalid option.dirName throws 'not a valid RegExp' error", async () => {
 		const srcDir = "C:\\dev\\sandbox\\files\\src";
 		const dstDir = "C:\\dev\\sandbox\\files\\dst";
 		const option: options = { dirNameFilter: "\\", mode: "copyDiff" };
-		await expect(dirl.move(srcDir, dstDir, option)).rejects.toThrow(
-			/not a valid RegExp/,
-		);
+		await expect(dirl.move(srcDir, dstDir, option)).rejects.toThrow(/not a valid RegExp/);
 		await fsp.rm(dstDir, { recursive: true, force: true });
 	});
 
@@ -52,9 +46,7 @@ describe("Fn: strToRegExp", async () => {
 		const srcDir = "C:\\dev\\sandbox\\files\\src";
 		const dstDir = "C:\\dev\\sandbox\\files\\dst";
 		const option: options = { fileNameFilter: "\\", mode: "copyDiff" };
-		await expect(dirl.move(srcDir, dstDir, option)).rejects.toThrow(
-			/not a valid RegExp/,
-		);
+		await expect(dirl.move(srcDir, dstDir, option)).rejects.toThrow(/not a valid RegExp/);
 		await fsp.rm(dstDir, { recursive: true, force: true });
 	});
 
@@ -62,9 +54,7 @@ describe("Fn: strToRegExp", async () => {
 		const srcDir = "C:\\dev\\sandbox\\files\\src";
 		const dstDir = "C:\\dev\\sandbox\\files\\dst";
 		const option: options = { extNameFilter: "\\", mode: "copyDiff" };
-		await expect(dirl.move(srcDir, dstDir, option)).rejects.toThrow(
-			/not a valid RegExp/,
-		);
+		await expect(dirl.move(srcDir, dstDir, option)).rejects.toThrow(/not a valid RegExp/);
 		await fsp.rm(dstDir, { recursive: true, force: true });
 	});
 

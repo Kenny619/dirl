@@ -1,4 +1,4 @@
-import * as fUtil from "../src/utils/fileUtils";
+import * as fUtil from "../utils/fileUtils.js";
 import { describe, expect, test } from "vitest";
 
 /*Scenarios
@@ -35,23 +35,17 @@ fn: optionFilter
 describe("Fn: validateDirectoryPath", () => {
 	test("01. invalid directory path returns 'directory path validation failed'", async () => {
 		const srcDir = "";
-		await expect(fUtil.validateDirectoryPath(srcDir)).rejects.toThrow(
-			/Directory path validation failed/,
-		);
+		await expect(fUtil.validateDirectoryPath(srcDir)).rejects.toThrow(/Directory path validation failed/);
 	});
 
 	test("02. Valid file path returns 'directory path validation failed'.", async () => {
 		const srcDir = "C:\\dev\\sandbox\\tsconfig.json";
-		await expect(fUtil.validateDirectoryPath(srcDir)).rejects.toThrow(
-			/Directory path validation failed/,
-		);
+		await expect(fUtil.validateDirectoryPath(srcDir)).rejects.toThrow(/Directory path validation failed/);
 	});
 
 	test("03. Non-Existing dir path returns 'directory path validation failed'.", async () => {
 		const srcDir = "Z:\\";
-		await expect(fUtil.validateDirectoryPath(srcDir)).rejects.toThrow(
-			/Directory path validation failed/,
-		);
+		await expect(fUtil.validateDirectoryPath(srcDir)).rejects.toThrow(/Directory path validation failed/);
 	});
 
 	test("04. Valid and existing dir path resolves promise", async () => {
@@ -63,30 +57,22 @@ describe("Fn: validateDirectoryPath", () => {
 describe("Fn: validateFilePath", () => {
 	test("05. empty filePath throws 'File path validation Failed'", async () => {
 		const srcDir = "";
-		await expect(fUtil.validateFilePath(srcDir)).rejects.toThrow(
-			/File path validation failed/,
-		);
+		await expect(fUtil.validateFilePath(srcDir)).rejects.toThrow(/File path validation failed/);
 	});
 
 	test("06. Valid directory path throws 'File path validation Failed'", async () => {
 		const srcDir = "C:\\";
-		await expect(fUtil.validateFilePath(srcDir)).rejects.toThrow(
-			/File path validation failed/,
-		);
+		await expect(fUtil.validateFilePath(srcDir)).rejects.toThrow(/File path validation failed/);
 	});
 
 	test("07. Invalid filePath throws 'File path validation Failed'", async () => {
 		const srcDir = "C:dev";
-		await expect(fUtil.validateFilePath(srcDir)).rejects.toThrow(
-			/File path validation failed/,
-		);
+		await expect(fUtil.validateFilePath(srcDir)).rejects.toThrow(/File path validation failed/);
 	});
 
 	test("08. Non-Existing filePath throws 'File path validation Failed'", async () => {
 		const srcDir = "Z:\\dev\\file.json";
-		await expect(fUtil.validateFilePath(srcDir)).rejects.toThrow(
-			/File path validation failed/,
-		);
+		await expect(fUtil.validateFilePath(srcDir)).rejects.toThrow(/File path validation failed/);
 	});
 
 	test("09. Valid and eixting file path resovles promise'", async () => {
@@ -124,27 +110,21 @@ describe("Fn: createRegexFilters", () => {
 	test("12. option with non Regexp dirNameFilter throws 'is not a valid Regexp' error", () => {
 		const option: options = { mode: "copyDiff", fileNameFilter: "\\" };
 		const srcDir = "C:\\dev\\sandbox\\files\\src\\exclude-level1.txt";
-		expect(() => fUtil.createRegexFilters(option)).toThrowError(
-			/is not a valid RegExp/,
-		);
+		expect(() => fUtil.createRegexFilters(option)).toThrowError(/is not a valid RegExp/);
 		//await expect(fUtil.optionFilter(srcDir, filter)).rejects.toThrow( //);
 	});
 
 	test("13. option with non Regexp fileNameFilter throws 'is not a valid Regexp' error", () => {
 		const option: options = { mode: "copyDiff", fileNameFilter: "/\\" };
 		const srcDir = "C:\\dev\\sandbox\\files\\src\\exclude-level1.txt";
-		expect(() => fUtil.createRegexFilters(option)).toThrowError(
-			/is not a valid RegExp/,
-		);
+		expect(() => fUtil.createRegexFilters(option)).toThrowError(/is not a valid RegExp/);
 		//expect(fUtil.optionFilter(srcDir, filter)).rejects.toThrow(/is not a valid RegExp/);
 	});
 
 	test("14. option with non Regexp extNameFilter throws 'is not a valid Regexp' error", () => {
 		const option: options = { mode: "copyDiff", extNameFilter: "\\" };
 		const srcDir = "C:\\dev\\sandbox\\files\\src\\exclude-level1.txt";
-		expect(() => fUtil.createRegexFilters(option)).toThrowError(
-			/is not a valid RegExp/,
-		);
+		expect(() => fUtil.createRegexFilters(option)).toThrowError(/is not a valid RegExp/);
 		//await expect(fUtil.optionFilter(srcDir, filter)).rejects.toThrow(/is not a valid RegExp/);
 	});
 
@@ -254,123 +234,93 @@ describe("Fn: isFileMovable", () => {
 		const srcFilePath = "C:\\dev\\sandbox\\files\\src\\exclude-level1.txt";
 		const dstFilePath = "C:\\dev\\sandbox\\files\\src\\exclude-level1.txt";
 		const mode = "copyOverwrite";
-		await expect(
-			fUtil.isFileMovable(srcFilePath, dstFilePath, mode),
-		).rejects.toThrow(/same file/);
+		await expect(fUtil.isFileMovable(srcFilePath, dstFilePath, mode)).rejects.toThrow(/same file/);
 	});
 
 	test("24. Invalid srcFilePath throws an error", async () => {
 		const srcFilePath = "";
 		const dstFilePath = "C:\\dev\\sandbox\\files\\src\\exclude-level1.txt";
 		const mode = "copyOverwrite";
-		await expect(
-			fUtil.isFileMovable(srcFilePath, dstFilePath, mode),
-		).rejects.toThrow(/File path validation failed/);
+		await expect(fUtil.isFileMovable(srcFilePath, dstFilePath, mode)).rejects.toThrow(/File path validation failed/);
 	});
 	test("25. Non-Existing dstFileFPath throws an ENOENT error", async () => {
 		const srcFilePath = "C:\\dev\\sandbox\\files\\src\\exclude-level1.txt";
 		const dstFilePath = "Z:\\dev\\file.txt";
 		const mode = "copyOverwrite";
-		await expect(
-			fUtil.isFileMovable(srcFilePath, dstFilePath, mode),
-		).rejects.toThrow(/ENOENT/);
+		await expect(fUtil.isFileMovable(srcFilePath, dstFilePath, mode)).rejects.toThrow(/ENOENT/);
 	});
 
 	test("26. mode=copyOverwrite returns true when a valid dstFilePath doesn't exist", async () => {
 		const srcFilePath = "C:\\dev\\sandbox\\files\\src\\exclude-level1.txt";
 		const dstFilePath = "C:\\dev\\sandbox\\filesUtils-test-26";
 		const mode = "copyOverwrite";
-		await expect(
-			fUtil.isFileMovable(srcFilePath, dstFilePath, mode),
-		).resolves.toBe(true);
+		await expect(fUtil.isFileMovable(srcFilePath, dstFilePath, mode)).resolves.toBe(true);
 	});
 
 	test("27. mode=copyOverwrite returns true when a valid dstFilePath exists", async () => {
 		const srcFilePath = "C:\\dev\\sandbox\\files\\src\\exclude-level1.txt";
 		const dstFilePath = "C:\\dev\\sandbox\\filesUtils-test-26";
 		const mode = "copyOverwrite";
-		await expect(
-			fUtil.isFileMovable(srcFilePath, dstFilePath, mode),
-		).resolves.toBe(true);
+		await expect(fUtil.isFileMovable(srcFilePath, dstFilePath, mode)).resolves.toBe(true);
 	});
 	test("28. mode=moveOverwrite returns true when a valid dstFilePath doesn't exist", async () => {
 		const srcFilePath = "C:\\dev\\sandbox\\files\\src\\exclude-level1.txt";
 		const dstFilePath = "C:\\dev\\sandbox\\filesUtils-test-26";
 		const mode = "moveOverwrite";
-		await expect(
-			fUtil.isFileMovable(srcFilePath, dstFilePath, mode),
-		).resolves.toBe(true);
+		await expect(fUtil.isFileMovable(srcFilePath, dstFilePath, mode)).resolves.toBe(true);
 	});
 	test("29. mode=moveOverwrite returns true when a valid dstFilePath exists", async () => {
 		const srcFilePath = "C:\\dev\\sandbox\\files\\src\\exclude-level1.txt";
 		const dstFilePath = "C:\\dev\\sandbox\\filesUtils-test-26";
 		const mode = "moveOverwrite";
-		await expect(
-			fUtil.isFileMovable(srcFilePath, dstFilePath, mode),
-		).resolves.toBe(true);
+		await expect(fUtil.isFileMovable(srcFilePath, dstFilePath, mode)).resolves.toBe(true);
 	});
 	test("30. mode=copyDiff returns true when a valid dstFilePath does not exist", async () => {
 		const srcFilePath = "C:\\dev\\sandbox\\files\\src\\exclude-level1.txt";
 		const dstFilePath = "C:\\dev\\sandbox\\filesUtils-test-27";
 		const mode = "copyDiff";
-		await expect(
-			fUtil.isFileMovable(srcFilePath, dstFilePath, mode),
-		).resolves.toBe(true);
+		await expect(fUtil.isFileMovable(srcFilePath, dstFilePath, mode)).resolves.toBe(true);
 	});
 	test("31. mode=copyDiff returns false when a valid dstFilePath exists", async () => {
 		const srcFilePath = "C:\\dev\\sandbox\\files\\src\\exclude-level1.txt";
 		const dstFilePath = "C:\\dev\\sandbox\\filesUtils-test-27";
 		const mode = "copyDiff";
-		await expect(
-			fUtil.isFileMovable(srcFilePath, dstFilePath, mode),
-		).resolves.toBe(true);
+		await expect(fUtil.isFileMovable(srcFilePath, dstFilePath, mode)).resolves.toBe(true);
 	});
 	test("32. mode=moveDiff returns true when a valid dstFilePath doest not exist", async () => {
 		const srcFilePath = "C:\\dev\\sandbox\\files\\src\\exclude-level1.txt";
 		const dstFilePath = "C:\\dev\\sandbox\\filesUtils-test-28";
 		const mode = "moveDiff";
-		await expect(
-			fUtil.isFileMovable(srcFilePath, dstFilePath, mode),
-		).resolves.toBe(true);
+		await expect(fUtil.isFileMovable(srcFilePath, dstFilePath, mode)).resolves.toBe(true);
 	});
 	test("33. mode=moveDiff returns false when a valid dstFilePath exists", async () => {
 		const srcFilePath = "C:\\dev\\sandbox\\files\\src\\exclude-level1.txt";
 		const dstFilePath = "C:\\dev\\sandbox\\filesUtils-test-28";
 		const mode = "moveDiff";
-		await expect(
-			fUtil.isFileMovable(srcFilePath, dstFilePath, mode),
-		).resolves.toBe(true);
+		await expect(fUtil.isFileMovable(srcFilePath, dstFilePath, mode)).resolves.toBe(true);
 	});
 	test("34. mode=copyIfNew returns true when srcFilepath is newer than dstFilePath", async () => {
 		const srcFilePath = "C:\\dev\\sandbox\\files\\src\\34.txt";
 		const dstFilePath = "C:\\dev\\sandbox\\files\\dst\\34.txt";
 		const mode = "copyIfNew";
-		await expect(
-			fUtil.isFileMovable(srcFilePath, dstFilePath, mode),
-		).resolves.toBe(true);
+		await expect(fUtil.isFileMovable(srcFilePath, dstFilePath, mode)).resolves.toBe(true);
 	});
 	test("35. mode=copyIfNew returns false when dstFilepath is newer than srcFilePath", async () => {
 		const srcFilePath = "C:\\dev\\sandbox\\files\\src\\include-level1.txt";
 		const dstFilePath = "C:\\dev\\sandbox\\files\\dst\\include-level1.txt";
 		const mode = "copyIfNew";
-		await expect(
-			fUtil.isFileMovable(srcFilePath, dstFilePath, mode),
-		).resolves.toBe(false);
+		await expect(fUtil.isFileMovable(srcFilePath, dstFilePath, mode)).resolves.toBe(false);
 	});
 	test("36. mode=moveIfNew returns false when dstFilepath is newer than srcFilePath", async () => {
 		const srcFilePath = "C:\\dev\\sandbox\\files\\src\\include-level1.txt";
 		const dstFilePath = "C:\\dev\\sandbox\\files\\dst\\include-level1.txt";
 		const mode = "moveIfNew";
-		await expect(
-			fUtil.isFileMovable(srcFilePath, dstFilePath, mode),
-		).resolves.toBe(false);
+		await expect(fUtil.isFileMovable(srcFilePath, dstFilePath, mode)).resolves.toBe(false);
 	});
 	test("37. mode=moveIfNew returns true when srcFilepath is newer than dstFilePath", async () => {
 		const srcFilePath = "C:\\dev\\sandbox\\files\\src\\old.txt";
 		const dstFilePath = "C:\\dev\\sandbox\\files\\dst\\old.txt";
 		const mode = "moveIfNew";
-		await expect(
-			fUtil.isFileMovable(srcFilePath, dstFilePath, mode),
-		).resolves.toBe(true);
+		await expect(fUtil.isFileMovable(srcFilePath, dstFilePath, mode)).resolves.toBe(true);
 	});
 });

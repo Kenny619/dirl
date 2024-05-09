@@ -7,7 +7,7 @@ declare global {
 	 * 1) whether to copy files or move(cut&paste) files
 	 * 2) the behavior when a source file already exists in the destination
 	 */
-	type mode =
+	type Mode =
 		| "copyOverwrite" // Copy and overwirte same name files exist in destination.
 		| "copyDiff" // Only copy files that exist on source, but missing in destination.
 		| "copyIfNew" // Copy and overwrite same name files, only if the source file is newer than destination file.
@@ -23,12 +23,32 @@ declare global {
 	 */
 
 	type FilterNames = "dirNameFilter" | "fileNameFilter" | "extNameFilter";
-	//	type inputOption = Partial<Record<FilterNames, string | null>> & { mode: mode };
-	//	type regexpOption = Partial<Record<FilterNames, RegExp | null>> & { mode: mode };
+	type Filters = Partial<{ [Key in FilterNames]: string }>;
+	type RegexFilters = Partial<{ [key in FilterNames]: RegExp }>;
 
-	// biome-ignore lint/suspicious/noExplicitAny: <to cover any additional property>
-	type options = Partial<
-		{ [key in FilterNames]: string } & { mode: mode } & { [K: string]: any }
-	>;
-	type regexFilters = Partial<{ [key in FilterNames]: RegExp }>;
+	type ErrorLog = Partial<{ file: string; error: string }[]>;
+
+	//move.ts
+	type TransferFilesResult = {
+		files: number;
+		moved: number;
+		deleted: number | null;
+		errors: errorLog;
+	};
+
+	type TransferFn = (srcDir: string, dstDir: string) => Promise<void>;
+	type Transfer = {
+		overwrite: TransferFn;
+		diff: TransferFn;
+		ifNew: TransferFn;
+	};
+
+	//get.ts
+	type GetFn<T> = (rootDir: string, filters: Filters) => Promise<T>;
+	type Get = {
+		filePaths: GetFn<string[]>;
+		fileCount: GetFn<number>;
+		sizeOfFiles: GetFn<{ path: string; size: string }[]>;
+		duplicates: GetFn<string[][]>;
+	};
 }

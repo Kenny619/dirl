@@ -1,7 +1,8 @@
 import fsp from "node:fs/promises";
 import path from "node:path";
-import { isDstDirWritable, validateDirectoryPath, createRegexFilters } from "./utils/fileUtils.js";
+import { isDstDirWritable, validateDirectoryPath, createRegexFilters, optionFilter } from "./utils/fileUtils.js";
 import dirl from "./index.js";
+
 export async function flatten(
 	srcDir: string,
 	dstDir: string,
@@ -32,14 +33,24 @@ export async function flatten(
 		throw new Error(`Directory validtion failed.  ${e}`);
 	}
 
-	const filters = createRegexFilters(option);
-
 	//listup file paths under srcDir
 	let files: string[] = [];
 	try {
 		files = await dirl.getFilePaths(srcDir, option);
 	} catch (e) {
 		throw new Error(`getFilePaths failed.  ${e}`);
+	}
+
+	//create Regexp filter
+	const filters = createRegexFilters(option);
+	if (filters) {
+		//async filter condition -> create a promises of check result, await to resolve all, and use them as filter condition.
+		try {
+			const optionFilterResults = await Promise.all(files.map((f) => optionFilter(f, filters)));
+			files = files.filter((_, i) => optionFilterResults[i]);
+		} catch (e) {
+			throw new Error(`${e}`);
+		}
 	}
 
 	for (const file of files) {
