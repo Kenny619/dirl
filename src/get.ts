@@ -1,34 +1,48 @@
 import fsp from "node:fs/promises";
 import path from "node:path";
-import dirL from "./base.js";
-class dirlGet extends dirL {
+import Dirlbass from "./base.js";
+class DirlGet extends Dirlbass {
 	public get: Get;
 
 	constructor() {
 		super();
 		this.get = {
-			filePaths: async (rootDir: string, filters: Filters): Promise<string[]> => {
+			filePaths: async (rootDir: string, filters: Filters = {}): Promise<string[]> => {
 				try {
 					return await this.getFilePaths(rootDir, filters);
 				} catch (e) {
 					throw new Error(`${e}`);
 				}
 			},
-			fileCount: async (rootDir: string, filters: Filters): Promise<number> => {
+			dirPaths: async (rootDir: string, filters: Filters = {}): Promise<string[]> => {
+				try {
+					return await this.getDirPaths(rootDir, filters);
+				} catch (e) {
+					throw new Error(`${e}`);
+				}
+			},
+			fileCount: async (rootDir: string, filters: Filters = {}): Promise<number> => {
 				try {
 					return await this.getFileCount(rootDir, filters);
 				} catch (e) {
 					throw new Error(`${e}`);
 				}
 			},
-			sizeOfFiles: async (rootDir: string, filters: Filters): Promise<{ path: string; size: string }[]> => {
+			fileSizes: async (rootDir: string, filters: Filters = {}): Promise<{ path: string; size: string }[]> => {
 				try {
 					return await this.getFileSizes(rootDir, filters);
 				} catch (e) {
 					throw new Error(`${e}`);
 				}
 			},
-			duplicates: async (rootDir: string, filters: Filters): Promise<string[][]> => {
+			dirSizes: async (rootDir: string, filters: Filters = {}): Promise<{ dir: string; size: string }[]> => {
+				try {
+					return await this.getDirSizes(rootDir, filters);
+				} catch (e) {
+					throw new Error(`${e}`);
+				}
+			},
+			duplicateFiles: async (rootDir: string, filters: Filters = {}): Promise<string[][]> => {
 				try {
 					return this.getDuplicates(rootDir, filters);
 				} catch (e) {
@@ -39,6 +53,12 @@ class dirlGet extends dirL {
 	}
 
 	async getFileSizes(root: string, filters: Filters = {}): Promise<{ path: string; size: string }[]> {
+		try {
+			await super.validateDirectoryPath(root);
+		} catch (e) {
+			throw new Error(`${root} is not a valid directory.  ${e}`);
+		}
+
 		let filePaths = [];
 		try {
 			filePaths = await this.getFilePaths(root, filters);
@@ -49,16 +69,65 @@ class dirlGet extends dirL {
 		const fileStats = await Promise.all(filePaths.map((file) => fsp.stat(file)));
 		const fileSizes = fileStats.map((file) => file.size);
 
-		const output = [];
-		for (let i = 0; i < filePaths.length; i++) {
-			output.push({ path: filePaths[i], size: this.formatFileSizeInBytes(fileSizes[i]) });
-		}
-
-		return output;
+		return filePaths.map((file, index) => {
+			return { path: file, size: this.formatFileSizeInBytes(fileSizes[index]) };
+		});
 	}
 
+	async getDirSizes(root: string, filters: Filters = {}): Promise<{ dir: string; size: string }[]> {
+		let dirPaths = [];
+
+		try {
+			dirPaths = await this.getDirPaths(root, filters);
+		} catch (e) {
+			throw new Error(`getDirPath failed in getDirSizes.  ${e}`);
+		}
+
+		//insert root dir.  Path.join to align the format, replace to delete the trailing slash/backslash
+		dirPaths.unshift(path.join(root).replace(/[\\\\|\\|\/|\/\/]$/, ""));
+
+		//create {dirpath: filesize} object
+		const dirSizes: { [Key: string]: number } = {};
+		for (const dir of dirPaths) dirSizes[dir] = 0;
+
+		try {
+			const dirSizesSum = await this.getFileSizeSum(dirSizes, filters);
+			return Object.keys(dirSizesSum).map((key) => {
+				return { dir: key, size: this.formatFileSizeInBytes(dirSizes[key]) };
+			});
+			//.filter((directory) => directory.size !== "0B ");
+		} catch (e) {
+			throw new Error(`getFIleSizeSum failed during getDirSizes.  ${e}`);
+		}
+	}
+
+	async getFileSizeSum(dirSizes: { [Key: string]: number }, filters: Filters) {
+		let filePaths = [];
+		for (const dir in dirSizes) {
+			try {
+				filePaths = await this.getFilePaths(dir, filters);
+			} catch (e) {
+				throw new Error(`readdir failed in getFileSizeSum.  ${e}`);
+			}
+
+			//apply filer and store result<bool> to filtered
+			const stats = await Promise.all(filePaths.map((file) => fsp.stat(file)));
+			const sizeSum = stats.reduce((acc, cur) => {
+				return cur.isFile() ? cur.size + acc : acc;
+			}, 0);
+
+			let _dir = dir;
+			while (Object.hasOwn(dirSizes, _dir)) {
+				dirSizes[_dir] = dirSizes[_dir] + sizeSum;
+				const matched = _dir.match(/^((.*)[\\\\|\\|\/|\/\/])(?:.+?)(?=\/*$)/); //match path without last directory without trailing slash/backslash
+				if (matched) _dir = matched[2];
+			}
+		}
+
+		return dirSizes;
+	}
 	formatFileSizeInBytes(bytes: number): string {
-		const units = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB", "RB", "QB"];
+		const units = ["B ", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB", "RB", "QB"];
 		let i = 0;
 		let b = bytes;
 
@@ -67,7 +136,7 @@ class dirlGet extends dirL {
 			i++;
 		}
 
-		return `${Number.parseFloat(b.toFixed(2))} ${units[i]}`;
+		return `${b.toFixed(2)}${units[i]}`;
 	}
 
 	async getFilePaths(root: string, filters: Filters = {}): Promise<string[]> {
@@ -78,25 +147,63 @@ class dirlGet extends dirL {
 			throw new Error(`${root} is not a valid directory.  ${e}`);
 		}
 
-		let filePaths = [];
+		let Dirents = [];
+		const filePaths = [];
+		const regexpFilters = super.createRegexFilters(filters);
 		try {
-			filePaths = (await fsp.readdir(root, { withFileTypes: true, recursive: true }))
-				.filter((f) => !f.isDirectory())
-				.map((f) => path.join(f.path, f.name));
+			Dirents = await fsp.readdir(root, { withFileTypes: true, recursive: true });
 		} catch (e) {
 			throw new Error(`readdir() in getFilePaths failed.  ${e}`);
 		}
 
-		const regexpFilters = super.createRegexFilters(filters);
-
-		if (filters) {
-			const filterResults = await Promise.all(
-				filePaths.map((file) => super.isFilePathMatchFilters(file, regexpFilters)),
-			);
-			return filePaths.filter((_, i) => filterResults[i]);
+		for (const dirent of Dirents) {
+			const filePath = path.join(dirent.path, dirent.name);
+			if (dirent.isFile()) {
+				if (regexpFilters) {
+					(await super.isPathMatchingFilters(filePath, regexpFilters)) && filePaths.push(filePath);
+				} else {
+					filePaths.push(filePath);
+				}
+			}
 		}
 
 		return filePaths;
+	}
+
+	async getDirPaths(root: string, filters: Filters = {}): Promise<string[]> {
+		//root directory validation
+		try {
+			await super.validateDirectoryPath(root);
+		} catch (e) {
+			throw new Error(`${root} is not a valid directory.  ${e}`);
+		}
+
+		const dirPaths = [];
+
+		//Create regexfilters only if dirNameFilter has value
+		let regexpFilters = {};
+		if (Object.hasOwn(filters, "dir")) {
+			regexpFilters = super.createRegexFilters(filters);
+		}
+
+		let Dirents = [];
+		try {
+			Dirents = await fsp.readdir(root, { recursive: true, withFileTypes: true });
+		} catch (e) {
+			throw new Error(`readdir() in getFilePaths failed.  ${e}`);
+		}
+
+		for (const dirent of Dirents) {
+			const entryPath = path.join(dirent.path, dirent.name);
+			if (dirent.isDirectory()) {
+				if (regexpFilters) {
+					(await super.isPathMatchingFilters(entryPath, regexpFilters)) && dirPaths.push(entryPath);
+				} else {
+					dirPaths.push(entryPath);
+				}
+			}
+		}
+		return dirPaths;
 	}
 
 	async getFileCount(root: string, filters: Filters = {}): Promise<number> {
@@ -108,7 +215,15 @@ class dirlGet extends dirL {
 		}
 	}
 
-	async getDuplicates(root: string, filters: Filters = {}): Promise<string[][]> {
+	async getDuplicates(root: string, filters: Filters = {}): Promise<Duplicates> {
+		//validate root
+		try {
+			super.validateDirectoryPath(root);
+		} catch (e) {
+			throw new Error(`validateDirectyPath failed in getDuplicate.  ${e}`);
+		}
+
+		//get file path
 		let filePaths = [];
 		try {
 			filePaths = await this.get.filePaths(root, filters);
@@ -116,124 +231,91 @@ class dirlGet extends dirL {
 			throw new Error(`get.filePaths() in getDuplicates failed.  ${e}`);
 		}
 
-		let noUniqueFileSizePaths = [];
+		//create {filesize: [filepath]} object
+		let sizeGroup: FileSizeGroup = {};
 		try {
-			const sizeSortedFilePaths = await this.sortFileBySize(filePaths);
-			noUniqueFileSizePaths = this.deleteUniqueFile(sizeSortedFilePaths);
+			sizeGroup = await this.groupFilesBySize(filePaths);
 		} catch (e) {
-			throw new Error(`softFileBySize() in getDuplicate failed.  ${e}`);
+			throw new Error(`groupFilesBySize in getDuplicate failed.  ${e}`);
 		}
 
-		const groupedFileSizePaths = this.groupByFileSize(noUniqueFileSizePaths);
-
-		try {
-			return await this.findDuplicatesAmongGroup(groupedFileSizePaths);
-		} catch (e) {
-			throw new Error(`findDuplicatesAmongGroup() in getDuplicate failed.  ${e}`);
-		}
+		//Among the fileSizeGroup, keep the files with same contents.  Return in string[][] format.
+		return this.findDuplicatesFromSizeGroup(sizeGroup);
 	}
 
-	async findDuplicatesAmongGroup(filePathGroups: { path: string; size: number }[][]): Promise<string[][]> {
+	async groupFilesBySize(filePaths: string[]): Promise<{ [Key: number]: string[] }> {
+		//get filesizes of each files
+		let fileSizes = [];
+		try {
+			const stats = await Promise.all(filePaths.map((file) => fsp.stat(file)));
+			fileSizes = stats.map((stat) => stat.size);
+		} catch (e) {
+			throw new Error(`fs stat failed in groupFilesBySize.  ${e}`);
+		}
+
+		//create an object of {filesize: [file path]} and group file path with same file size
+		const sizeGroup: { [Key: number]: string[] } = {};
+		return filePaths.reduce((acc, cur, index) => {
+			if (Object.hasOwn(acc, fileSizes[index])) {
+				acc[fileSizes[index]].push(cur);
+			} else {
+				acc[fileSizes[index]] = [cur];
+			}
+			return acc;
+		}, sizeGroup);
+	}
+
+	async findDuplicatesFromSizeGroup(fileGroupBySize: { [Key: number]: string[] }): Promise<string[][]> {
 		//get the file content of each file and compare among the same group
+
+		//return array
 		const results = [];
-		for (const group of filePathGroups) {
-			//create an array of file buffers from each files in a group.
+
+		for (const pathGroup of Object.values(fileGroupBySize)) {
+			//continue the loop if pathGroup contains contain only 1 path = no equal size files.
+			if (pathGroup.length === 1) continue;
+
+			//get file buffers from each file path pathGroup
 			let buffers = [];
 			try {
-				buffers = await Promise.all(group.map((file) => fsp.readFile(file.path)));
+				buffers = await Promise.all(pathGroup.map((file) => fsp.readFile(file)));
 			} catch (e) {
 				throw new Error(`getDuplicate failed while reading file buffer.  ${e}`);
 			}
 
 			//compare
-			const duplicates = [];
-			let i = 1;
-			while (buffers.length > 1) {
-				//compare each buffers to left most buffer.
-				//push both to duplicates array if they are equal.
-				if (buffers[0].equals(buffers[i])) {
-					duplicates.push(group[0].path, group[i].path);
-				}
+			const duplicates = []; //duplicate file path storage
+			let left = 0; //left pointer
+			let right = 1; // right pointer
+			//while right and left pointers were within the range of the buffers array.
+			//Exit loop if either of pointers are out of the range.
 
-				//if i is at the end of buffers, then splice off the first cell and reset i to 1.
-				//Otherwise increment i by 1;
-				if (i === buffers.length - 1) {
-					buffers.splice(0, 1);
-					i = 1;
-				} else {
-					i++;
+			//repeat until left and right pointers are next to each other at the end of buffer array.
+			while (left !== buffers.length - 1 && right !== buffers.length) {
+				//compare buffers on left and right pointers.
+				//If they are equal, push both paths to duplicates array.
+				buffers[left].equals(buffers[right]) && duplicates.push(pathGroup[left], pathGroup[right]);
+
+				//Move on to next comparison.  Increment right pointer by 1.
+				right++;
+
+				//if right pointer is at the end of the array, move left pointer by 1.
+				//Reset right pointer's position by putting it on the right side of the left pointer.
+				if (right === buffers.length) {
+					left++;
+					right = left + 1;
 				}
 			}
+
 			//If any duplicates were found, create an unique list of duplicate paths
 			//and push them to results array
-			if (duplicates.length > 0) {
-				results.push(Array.from(new Set(duplicates)));
-			}
+			if (duplicates.length > 0) results.push(Array.from(new Set(duplicates)));
 		}
 		return results;
 	}
-
-	groupByFileSize(filePath: { path: string; size: number }[]): { path: string; size: number }[][] {
-		const groups = [];
-		const sizeArr = filePath.map((file) => file.size);
-
-		//splice the same sizes into an array and push it to groups
-		while (filePath.length > 0) {
-			groups.push(
-				filePath.splice(sizeArr.indexOf(sizeArr[0]), sizeArr.lastIndexOf(sizeArr[0]) - sizeArr.indexOf(sizeArr[0]) + 1),
-			);
-		}
-
-		return groups;
-	}
-
-	deleteUniqueFile(filePaths: { path: string; size: number }[]): { path: string; size: number }[] {
-		const sizeArr = filePaths.map((file) => {
-			return file.size;
-		});
-
-		const uniqueArr = sizeArr.map((file) => {
-			return sizeArr.indexOf(file) === sizeArr.lastIndexOf(file);
-		});
-
-		return filePaths.filter((_, index) => uniqueArr[index]);
-	}
-
-	async sortFileBySize(filePaths: string[]): Promise<
-		{
-			path: string;
-			size: number;
-		}[]
-	> {
-		//create an array of filepath, fs.stat of that filepath, and the size of the file (initial=0)
-		const fileSizeArr = filePaths.map((filePath) => {
-			const stat = fsp.stat(filePath);
-			return { path: filePath, stat: stat, size: 0 };
-		});
-		try {
-			//resolve all fsp.stat in fileSizeArr[i].stat
-			const fileStatArr = await Promise.all(fileSizeArr.map((file) => file.stat));
-
-			//Using fsp.stat in fileStatArr, update size property in fileSizeArr
-			for (let i = 0; i < fileSizeArr.length; i++) {
-				fileSizeArr[i].size = fileStatArr[i].size;
-			}
-
-			//sort 1fileSizeArr by the value of size property
-			fileSizeArr.sort((a, b) => {
-				return a.size - b.size;
-			});
-
-			//return  filePath and filesize
-			return fileSizeArr.map((file) => {
-				return {
-					path: file.path,
-					size: file.size,
-				};
-			});
-		} catch (e) {
-			throw new Error(`sortFileBySize failed.  ${e}`);
-		}
-	}
 }
-export default dirlGet;
+export default DirlGet;
+
+// const dirl = new dirlGet();
+// const sizes = dirl.get.sizeOfDirs("./src/tests/files/duplicates/");
+// console.log(sizes);

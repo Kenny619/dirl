@@ -1,7 +1,7 @@
 import fsp from "node:fs/promises";
 import path from "node:path";
-import Dirlbass from "./base.js";
-class dirlMove extends Dirlbass {
+import DirlGet from "./get.js";
+class DirlMove extends DirlGet {
 	public move: Transfer;
 	public copy: Transfer;
 
@@ -36,14 +36,14 @@ class dirlMove extends Dirlbass {
 				try {
 					await this.transferDir(srcDir, dstDir, "copyOverwrite", filters);
 				} catch (e) {
-					throw new Error(`${e}`);
+					throw new Error(`${(e as Error).message} ${(e as Error).stack}`);
 				}
 			},
 			diff: async (srcDir: string, dstDir: string, filters: Filters = {}) => {
 				try {
 					await this.transferDir(srcDir, dstDir, "copyDiff", filters);
 				} catch (e) {
-					throw new Error(`${e}`);
+					throw new Error(`${(e as Error).message} ${(e as Error).stack}`);
 				}
 			},
 			ifNew: async (srcDir: string, dstDir: string, filters: Filters = {}) => {
@@ -58,22 +58,22 @@ class dirlMove extends Dirlbass {
 
 	protected async transferDir(srcDir: string, dstDir: string, mode: Mode, filters: Filters) {
 		try {
-			const filePaths = await this.createTransferFileList(srcDir, dstDir, filters);
-			if (filePaths) {
-				const result = await this.transferFiles(filePaths, srcDir, dstDir, mode);
-				this.printTransferResult(result, "moveOverwrite");
-			}
+			const TransferFilesResult = await this.transferFiles(srcDir, dstDir, filters, mode);
+			this.printTransferResult(TransferFilesResult, mode);
 		} catch (e) {
-			throw new Error(`${e}`);
+			throw new Error(`${(e as Error).message} ${(e as Error).stack}`);
 		}
 	}
 
 	protected printTransferResult(result: TransferFilesResult, mode: Mode) {
-		console.log(`Transfer completed.  mode:${mode}`);
-		console.log(`transferred: ${result.moved}/${result.files}`);
-		if (/^move/.test(mode)) console.log(`deleted: ${result.deleted}/${result.files}`);
 		if (result.errors.length > 0) {
-			console.log("ERRORS:");
+			const reset = "\x1b[0m"; // Reset color
+			const redBackgroundWhiteTextBold = "\x1b[41m\x1b[37m\x1b[1m"; // Red background, white text, bold
+			const whiteTextNoBackground = "\x1b[37m"; // White text, no background
+			const title = "  ERROR  ";
+			const restOfMessage = " ***File transfer completed except for below files.***";
+			const errorMsg = `${redBackgroundWhiteTextBold}${title}${reset} ${whiteTextNoBackground}${restOfMessage}${reset}`;
+			console.log(`${errorMsg}\r\n\r\m`);
 			for (const error of result.errors) {
 				console.log(`PATH : ${error.path}`);
 				console.log(`ERROR: ${error.error}`);
@@ -82,110 +82,111 @@ class dirlMove extends Dirlbass {
 		}
 	}
 
-	protected async createTransferFileList(srcDir: string, dstDir: string, filters: Filters): Promise<string[]> {
-		//Validate srcDir
-		try {
-			await super.validateDirectoryPath(srcDir);
-			if (srcDir === dstDir) throw new Error("srcDir and dstDir cannot be the same.");
-		} catch (e) {
-			throw new Error(`${srcDir} is not a valid directory.`);
-		}
-
-		//validate dstDir.
-		try {
-			await super.isDirectoryWritable(dstDir);
-		} catch (e) {
-			throw new Error(`${dstDir} does not exist or not writable.  ${e}`);
-		}
-
-		//Get all filePaths under srcDir.
-		let filepaths: string[] = [];
-		try {
-			filepaths = (await fsp.readdir(srcDir, { withFileTypes: true, recursive: true }))
-				.filter((f) => !f.isDirectory())
-				.map((f) => path.join(f.path, f.name));
-		} catch (e) {
-			throw new Error(`Failed to acquire filenames from ${srcDir}.  ${e}`);
-		}
-
-		//create Regexp filter
-		const regexpFilters = super.createRegexFilters(filters);
-		if (filters) {
-			//async filter condition -> create a promises of check result, await to resolve all, and use them as filter condition.
-			try {
-				const optionFilterResults = await Promise.all(
-					filepaths.map((f) => super.isFilePathMatchFilters(f, regexpFilters)),
-				);
-				filepaths = filepaths.filter((_, i) => optionFilterResults[i]);
-			} catch (e) {
-				throw new Error(`Failed to apply filter to filenames.  ${e}`);
-			}
-		}
-
-		return filepaths;
-	}
 	protected async transferFiles(
-		files: string[],
 		srcDir: string,
 		dstDir: string,
+		filters: Filters,
 		mode: Mode,
 	): Promise<TransferFilesResult> {
-		//working from bottom to top of dir structure so that empty dir will be deleted for mode = move*
-		const filePaths = files.reverse();
+		//Validate Dir
+		try {
+			super.validateSrcAndDst(srcDir, dstDir);
+		} catch (e) {
+			throw new Error(`validateSrcAndDst failed in createTransferFileList.  ${e}`);
+		}
 
-		let movedCount = 0;
-		let deletedCount = 0;
-		const errorLog: ErrorLog = [];
+		//get source file paths
+		let srcFilePaths: string[] = [];
+		try {
+			srcFilePaths = await super.getFilePaths(srcDir, filters);
+		} catch (e) {
+			throw new Error(`getFilePaths failed on transferFiles.  ${e}`);
+		}
 
-		for (const srcFilePath of filePaths) {
-			//create dst file path
-			const dstPath = path.dirname(srcFilePath).replace(srcDir, dstDir);
-			const dstFilePath = path.join(dstPath, path.basename(srcFilePath));
+		//reverse order.  Working from bottom to top allowing empty dir to be deleted for mode=move*
+		srcFilePaths.reverse();
 
-			//Skip copying/moving if file already exists in destination and cannot be copied/moved
+		//init ErrorLog array
+		const errorLog: { path: string; error: string }[] = [];
+
+		//create dstFilePaths
+		const dstFilePaths = srcFilePaths.map((srcFile) => {
+			const srcFileReplace = path.join(path.dirname(srcDir), path.basename(srcDir));
+			return path.join(dstDir, srcFile.replace(srcFileReplace, ""));
+		});
+
+		//check if the file is movable.  Move to next dirent if returned false
+
+		let isFileMovableCheckResults = [];
+		try {
+			isFileMovableCheckResults = await Promise.all(
+				dstFilePaths.map((dstFile, index) => super.isFileMovable(srcFilePaths[index], dstFile, mode)),
+			);
+		} catch (e) {
+			throw new Error(`isFileMovable failed in transferFiles.  ${e}`);
+		}
+
+		//counters
+		const targetFiles = isFileMovableCheckResults.filter((b) => true).length; //total number of valid target files (excl. filtered out files, isFileMovable false files)
+		let movedFiles = 0; //total number of files successfully copied or moved
+		let deletedFiles = 0; //total number of source files successfully deleted (only for mode=move*)
+
+		//loop through srcFilePaths and copy files one by one.
+		//If any async fn fails, log it to the errorLog and move on to the next file.
+		for (let i = 0; i < srcFilePaths.length; i++) {
+			//continue the loop if isFileMovableCheckResult was false
+			if (!isFileMovableCheckResults[i]) continue;
+
+			//create dstPath directory
 			try {
-				if (!(await super.isFileMovable(srcFilePath, dstFilePath, mode))) continue;
+				await fsp.mkdir(path.dirname(dstFilePaths[i]), { recursive: true });
 			} catch (e) {
-				errorLog.push({ file: srcFilePath, error: `isFileMovable failed.  ${e}` });
+				errorLog.push({ path: srcFilePaths[i], error: `mkdir failed on ${path.dirname(dstFilePaths[i])} ${e}` });
 				continue;
 			}
 
+			//copy file
 			try {
-				//copy file
-				await fsp.mkdir(path.dirname(dstFilePath), { recursive: true });
-				await fsp.copyFile(srcFilePath, dstFilePath);
-				movedCount++;
-
-				//delete file if mode = move*
-				if (/^move/.test(mode)) {
-					//delete file
-					try {
-						await fsp.rm(srcFilePath, { maxRetries: 3, retryDelay: 1000 });
-						deletedCount++;
-					} catch (e) {
-						errorLog.push({ file: srcFilePath, error: `Failed to delete file.  ${e}` });
-					}
-
-					//delete dir if there's no more file left in bottom dir
-					try {
-						const remainingFiles = await fsp.readdir(path.dirname(srcFilePath));
-						if (remainingFiles.length === 0) await fsp.rmdir(path.dirname(srcFilePath));
-					} catch (e) {
-						errorLog.push({ file: path.dirname(srcFilePath), error: `Failed to delete directory  ${e}` });
-					}
-				}
+				await fsp.copyFile(srcFilePaths[i], dstFilePaths[i]);
+				movedFiles++;
 			} catch (e) {
-				errorLog.push({ file: srcFilePath, error: `Failed to transfer file.  ${e}` });
+				errorLog.push({ path: srcFilePaths[i], error: `copyFile failed on ${srcFilePaths[i]}  ${e}` });
+				continue;
+			}
+
+			//delete files for mode=move*
+			if (/^move/.test(mode)) {
+				//delete file
+				try {
+					await fsp.rm(srcFilePaths[i], { maxRetries: 3, retryDelay: 1000 });
+				} catch (e) {
+					errorLog.push({
+						path: srcFilePaths[i],
+						error: `Failed to delete file source file ${srcFilePaths[i]}.  ${e}`,
+					});
+				}
+
+				//increment deletedFiles after the file is successfully deleted
+				deletedFiles++;
+
+				//delete dir if there's no more file left in source directory
+				const currentDir = path.dirname(srcFilePaths[i]);
+				try {
+					const remainingDirents = await super.getFileCount(currentDir);
+					if (remainingDirents === 0) await fsp.rmdir(currentDir);
+				} catch (e) {
+					errorLog.push({ path: currentDir, error: `Deleting empty directory failed on ${currentDir}  ${e}` });
+				}
 			}
 		}
 
 		return {
-			files: filePaths.length,
-			moved: movedCount,
-			deleted: /^move/.test(mode) ? deletedCount : null,
+			files: targetFiles,
+			moved: movedFiles,
+			deleted: /^move/.test(mode) ? deletedFiles : null,
 			errors: errorLog,
 		};
 	}
 }
 
-export default dirlMove;
+export default DirlMove;

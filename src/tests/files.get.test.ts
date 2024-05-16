@@ -1,4 +1,4 @@
-import dirl from "../index.js";
+import dirl from "../base.js";
 import { describe, expect, test } from "vitest";
 
 /*Scenarios

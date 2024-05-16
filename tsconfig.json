@@ -12,13 +12,14 @@
 		"types": ["vitest/globals"],
 		"baseUrl": ".",
 		"paths": {
-			"@types": ["./src/types/*"]
+			"@": ["src/*"],
+			"@types": ["types/*"]
 		},
 
 		//emit https://www.typescriptlang.org/tsconfig#Emit_6246
-		"removeComments": true,
+		"removeComments": false,
 		"noEmitOnError": true,
-		"sourceMap": true,
+		"sourceMap": false,
 		"outDir": "dist",
 
 		//Interop Constraints https://www.typescriptlang.org/tsconfig#Interop_Constraints_6252
@@ -30,6 +31,6 @@
 		//Completeness https://www.typescriptlang.org/tsconfig#Completeness_6257
 		"skipLibCheck": true
 	},
-	"include": ["src"],
+	"include": ["src", "types"],
 	"exclude": ["node_modules"]
 }
