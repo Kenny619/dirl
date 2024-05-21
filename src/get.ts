@@ -11,52 +11,52 @@ class DirlGet extends Dirlbass {
 				try {
 					return await this.getFilePaths(rootDir, filters);
 				} catch (e) {
-					throw new Error(`${e}`);
+					throw `${e}`;
 				}
 			},
 			dirPaths: async (rootDir: string, filters: Filters = {}): Promise<string[]> => {
 				try {
 					return await this.getDirPaths(rootDir, filters);
 				} catch (e) {
-					throw new Error(`${e}`);
+					throw `${e}`;
 				}
 			},
 			fileCount: async (rootDir: string, filters: Filters = {}): Promise<number> => {
 				try {
 					return await this.getFileCount(rootDir, filters);
 				} catch (e) {
-					throw new Error(`${e}`);
+					throw `${e}`;
 				}
 			},
 			fileSizes: async (rootDir: string, filters: Filters = {}): Promise<{ path: string; size: string }[]> => {
 				try {
 					return await this.getFileSizes(rootDir, filters);
 				} catch (e) {
-					throw new Error(`${e}`);
+					throw `${e}`;
 				}
 			},
 			dirSizes: async (rootDir: string, filters: Filters = {}): Promise<{ dir: string; size: string }[]> => {
 				try {
 					return await this.getDirSizes(rootDir, filters);
 				} catch (e) {
-					throw new Error(`${e}`);
+					throw `${e}`;
 				}
 			},
 			duplicateFiles: async (rootDir: string, filters: Filters = {}): Promise<string[][]> => {
 				try {
 					return this.getDuplicates(rootDir, filters);
 				} catch (e) {
-					throw new Error(`${e}`);
+					throw `${e}`;
 				}
 			},
 		};
 	}
 
-	async getFileSizes(root: string, filters: Filters = {}): Promise<{ path: string; size: string }[]> {
+	protected async getFileSizes(root: string, filters: Filters = {}): Promise<{ path: string; size: string }[]> {
 		try {
 			await super.validateDirectoryPath(root);
 		} catch (e) {
-			throw new Error(`${root} is not a valid directory.  ${e}`);
+			throw `${e}`;
 		}
 
 		let filePaths = [];
@@ -74,13 +74,13 @@ class DirlGet extends Dirlbass {
 		});
 	}
 
-	async getDirSizes(root: string, filters: Filters = {}): Promise<{ dir: string; size: string }[]> {
+	protected async getDirSizes(root: string, filters: Filters = {}): Promise<{ dir: string; size: string }[]> {
 		let dirPaths = [];
 
 		try {
 			dirPaths = await this.getDirPaths(root, filters);
 		} catch (e) {
-			throw new Error(`getDirPath failed in getDirSizes.  ${e}`);
+			throw `${e}`;
 		}
 
 		//insert root dir.  Path.join to align the format, replace to delete the trailing slash/backslash
@@ -101,7 +101,7 @@ class DirlGet extends Dirlbass {
 		}
 	}
 
-	async getFileSizeSum(dirSizes: { [Key: string]: number }, filters: Filters) {
+	protected async getFileSizeSum(dirSizes: { [Key: string]: number }, filters: Filters) {
 		let filePaths = [];
 		for (const dir in dirSizes) {
 			try {
@@ -126,7 +126,7 @@ class DirlGet extends Dirlbass {
 
 		return dirSizes;
 	}
-	formatFileSizeInBytes(bytes: number): string {
+	protected formatFileSizeInBytes(bytes: number): string {
 		const units = ["B ", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB", "RB", "QB"];
 		let i = 0;
 		let b = bytes;
@@ -139,12 +139,12 @@ class DirlGet extends Dirlbass {
 		return `${b.toFixed(2)}${units[i]}`;
 	}
 
-	async getFilePaths(root: string, filters: Filters = {}): Promise<string[]> {
+	protected async getFilePaths(root: string, filters: Filters = {}): Promise<string[]> {
 		//root directory validation
 		try {
 			await super.validateDirectoryPath(root);
 		} catch (e) {
-			throw new Error(`${root} is not a valid directory.  ${e}`);
+			throw `${e}`;
 		}
 
 		let Dirents = [];
@@ -153,7 +153,7 @@ class DirlGet extends Dirlbass {
 		try {
 			Dirents = await fsp.readdir(root, { withFileTypes: true, recursive: true });
 		} catch (e) {
-			throw new Error(`readdir() in getFilePaths failed.  ${e}`);
+			throw new Error(`readdir(${root}) faild in getFilePaths().  ${e}`);
 		}
 
 		for (const dirent of Dirents) {
@@ -170,12 +170,12 @@ class DirlGet extends Dirlbass {
 		return filePaths;
 	}
 
-	async getDirPaths(root: string, filters: Filters = {}): Promise<string[]> {
+	protected async getDirPaths(root: string, filters: Filters = {}): Promise<string[]> {
 		//root directory validation
 		try {
 			await super.validateDirectoryPath(root);
 		} catch (e) {
-			throw new Error(`${root} is not a valid directory.  ${e}`);
+			throw `${e}`;
 		}
 
 		const dirPaths = [];
@@ -190,7 +190,7 @@ class DirlGet extends Dirlbass {
 		try {
 			Dirents = await fsp.readdir(root, { recursive: true, withFileTypes: true });
 		} catch (e) {
-			throw new Error(`readdir() in getFilePaths failed.  ${e}`);
+			throw new Error(`readdir(${root}) failed in getFilePaths().  ${e}`);
 		}
 
 		for (const dirent of Dirents) {
@@ -206,21 +206,21 @@ class DirlGet extends Dirlbass {
 		return dirPaths;
 	}
 
-	async getFileCount(root: string, filters: Filters = {}): Promise<number> {
+	protected async getFileCount(root: string, filters: Filters = {}): Promise<number> {
 		try {
 			const filePaths: string[] = await this.get.filePaths(root, filters);
 			return filePaths.length;
 		} catch (e) {
-			throw new Error(`getFileCount failed.  ${e}`);
+			throw `${e}`;
 		}
 	}
 
-	async getDuplicates(root: string, filters: Filters = {}): Promise<Duplicates> {
+	protected async getDuplicates(root: string, filters: Filters = {}): Promise<Duplicates> {
 		//validate root
 		try {
 			super.validateDirectoryPath(root);
 		} catch (e) {
-			throw new Error(`validateDirectyPath failed in getDuplicate.  ${e}`);
+			throw `${e}`;
 		}
 
 		//get file path
@@ -228,7 +228,7 @@ class DirlGet extends Dirlbass {
 		try {
 			filePaths = await this.get.filePaths(root, filters);
 		} catch (e) {
-			throw new Error(`get.filePaths() in getDuplicates failed.  ${e}`);
+			throw `${e}`;
 		}
 
 		//create {filesize: [filepath]} object
@@ -236,21 +236,21 @@ class DirlGet extends Dirlbass {
 		try {
 			sizeGroup = await this.groupFilesBySize(filePaths);
 		} catch (e) {
-			throw new Error(`groupFilesBySize in getDuplicate failed.  ${e}`);
+			throw `${e}`;
 		}
 
 		//Among the fileSizeGroup, keep the files with same contents.  Return in string[][] format.
 		return this.findDuplicatesFromSizeGroup(sizeGroup);
 	}
 
-	async groupFilesBySize(filePaths: string[]): Promise<{ [Key: number]: string[] }> {
+	protected async groupFilesBySize(filePaths: string[]): Promise<{ [Key: number]: string[] }> {
 		//get filesizes of each files
 		let fileSizes = [];
 		try {
 			const stats = await Promise.all(filePaths.map((file) => fsp.stat(file)));
 			fileSizes = stats.map((stat) => stat.size);
 		} catch (e) {
-			throw new Error(`fs stat failed in groupFilesBySize.  ${e}`);
+			throw new Error(`fsp.stat() failed in groupFilesBySize.  ${e}`);
 		}
 
 		//create an object of {filesize: [file path]} and group file path with same file size
@@ -265,7 +265,7 @@ class DirlGet extends Dirlbass {
 		}, sizeGroup);
 	}
 
-	async findDuplicatesFromSizeGroup(fileGroupBySize: { [Key: number]: string[] }): Promise<string[][]> {
+	protected async findDuplicatesFromSizeGroup(fileGroupBySize: { [Key: number]: string[] }): Promise<string[][]> {
 		//get the file content of each file and compare among the same group
 
 		//return array
@@ -280,7 +280,7 @@ class DirlGet extends Dirlbass {
 			try {
 				buffers = await Promise.all(pathGroup.map((file) => fsp.readFile(file)));
 			} catch (e) {
-				throw new Error(`getDuplicate failed while reading file buffer.  ${e}`);
+				throw new Error(`fsdreadFile() failed in findDuplicatesFromSizeGroup.  ${e}`);
 			}
 
 			//compare
@@ -315,7 +315,3 @@ class DirlGet extends Dirlbass {
 	}
 }
 export default DirlGet;
-
-// const dirl = new dirlGet();
-// const sizes = dirl.get.sizeOfDirs("./src/tests/files/duplicates/");
-// console.log(sizes);

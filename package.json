@@ -6,7 +6,8 @@
 	"scripts": {
 		"test": "vitest",
 		"prebuild": "rimraf dist",
-		"build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json"
+		"build": "tsc --project ./src/build.tsconfig.json && tsc-alias -p ./src/build.tsconfig.json",
+		"sandbox": "tsx --no-warnings --env-file=.env ./tests/sandbox.ts"
 	},
 	"type": "module",
 	"repository": {
@@ -27,7 +28,6 @@
 		"@types/node": "^20.11.7",
 		"rimraf": "^5.0.5",
 		"ts-jest": "^29.1.2",
-		"ts-node": "^10.9.2",
 		"tsc-alias": "^1.8.8",
 		"vitest": "^1.5.2"
 	}

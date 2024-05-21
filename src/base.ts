@@ -2,12 +2,13 @@ import fsp from "node:fs/promises";
 import path from "node:path";
 
 class Dirlbass {
-	//protected
-	async validateSrcAndDst(srcDir: string, dstDir: string): Promise<void> {
+	protected async validateSrcAndDst(srcDir: string, dstDir: string): Promise<void> {
+		//check srcDir and dstDir are not the same
 		if (srcDir === dstDir) {
 			throw new Error("source directory and destination directory cannot be the same.");
 		}
 
+		//validate directory path and dstDir is writable
 		try {
 			await this.validateDirectoryPath(srcDir);
 			await this.isDirectoryWritable(dstDir);
@@ -15,29 +16,38 @@ class Dirlbass {
 			throw new Error(`validateSrcAndDst failed.  ${e}`);
 		}
 
+		//check if srcDir is empty
+		let empty = true;
+		let dirents = [];
 		try {
-			const dirents = await fsp.readdir(srcDir, { recursive: true, withFileTypes: true });
-			let empty = true;
-			for (const dirent of dirents) {
-				if (dirent.isFile()) {
-					empty = false;
-					break;
-				}
-			}
-
-			if (empty) {
-				throw new Error(`No files in source directory: ${srcDir}`);
-			}
+			dirents = await fsp.readdir(srcDir, { recursive: true, withFileTypes: true });
 		} catch (e) {
 			throw new Error(`readdir failed on ${srcDir}  ${e}`);
 		}
+
+		for (const dirent of dirents) {
+			if (dirent.isFile()) {
+				empty = false;
+				break;
+			}
+		}
+
+		//throw error if no file are found in srcDir
+		if (empty) {
+			throw new Error(`No files in source directory: ${srcDir}`);
+		}
 	}
+
 	protected async validateDirectoryPath(dirPath: string): Promise<void> {
 		try {
 			const stat = await fsp.stat(dirPath);
-			if (!stat.isDirectory()) throw new Error(`${dirPath} is not a valid directory.`);
+			try {
+				stat.isDirectory();
+			} catch (e) {
+				throw new Error(`${dirPath} is not a valid directory. ${e}`);
+			}
 		} catch (e) {
-			throw new Error(`validateDirectoryPath failed.  ${dirPath} is not a valid directory.  ${e}`);
+			throw new Error(`${dirPath} is not a valid directory.  ${e}`);
 		}
 	}
 
@@ -46,12 +56,12 @@ class Dirlbass {
 			const stat = await fsp.stat(filePath);
 			if (!stat.isFile()) throw new Error(`${filePath} is not a valid file.`);
 		} catch (e) {
-			throw new Error(`validateFilePath failed.  ${filePath} is not a valid file path.  ${e}`);
+			throw new Error(`${(e as Error).message}`);
 		}
 	}
 
 	//protected
-	createRegexFilters(filters: Filters): RegexFilters {
+	protected createRegexFilters(filters: Filters): RegexFilters {
 		const validatedRegex: RegexFilters = {};
 
 		//return empty obj if filters is empty
@@ -72,7 +82,7 @@ class Dirlbass {
 	}
 
 	//protected
-	async isPathMatchingFilters(entryPath: string, filters: RegexFilters): Promise<boolean> {
+	protected async isPathMatchingFilters(entryPath: string, filters: RegexFilters): Promise<boolean> {
 		let mode = "";
 		//validate filePath
 		try {

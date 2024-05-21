@@ -20,7 +20,7 @@
 		"removeComments": false,
 		"noEmitOnError": true,
 		"sourceMap": false,
-		"outDir": "dist",
+		"outDir": "../dist",
 
 		//Interop Constraints https://www.typescriptlang.org/tsconfig#Interop_Constraints_6252
 		"esModuleInterop": true,
@@ -32,11 +32,6 @@
 		"skipLibCheck": true
 	},
 
-	"ts-node": {
-		"esm": true,
-		"experimentalSpecifierResolution": "node"
-	},
-
-	"include": ["src", "types", "tests"],
+	"include": ["./", "../types" ],
 	"exclude": ["node_modules"]
 }

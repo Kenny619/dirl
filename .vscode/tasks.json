@@ -1,0 +1,12 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "sandbox",
+			"problemMatcher": [],
+			"label": "npm: sandbox",
+			"detail": "tsx --no-warnings --env-file=.env ./tests/sandbox.ts"
+		}
+	]
+}

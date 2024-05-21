@@ -1,1 +1,0 @@
-import dirl from "../index";

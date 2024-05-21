@@ -101,10 +101,19 @@ class DirlPrint extends DirlGet {
 	}
 
 	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-	noFiles(root: string, result: any[]): void {
+	protected noFiles(root: string, result: any[]): void {
 		if (result.length === 0) {
 			console.log(`No items found in ${root}`);
 			process.exit(0);
+		}
+	}
+
+	protected async dirTree(root: string, filter: Filters = {}): Promise<void> {
+		let dirs = [];
+		try {
+			dirs = await super.getDirPaths(root, filter);
+		} catch (e) {
+			throw `${e}`;
 		}
 	}
 }
