@@ -20,15 +20,13 @@
 		"url": "https://github.com/Kenny619/dirl.git"
 	},
 	"homepage": "https://github.com/Kenny619/dirl#readme",
-	"dependencies": {
-		"vite-tsconfig-paths": "^4.2.2"
-	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.4.1",
 		"@types/node": "^20.11.7",
 		"rimraf": "^5.0.5",
 		"ts-jest": "^29.1.2",
 		"tsc-alias": "^1.8.8",
+		"vite-tsconfig-paths": "^4.3.2",
 		"vitest": "^1.5.2"
 	}
 }
