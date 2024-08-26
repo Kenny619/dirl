@@ -8,6 +8,7 @@
 `dirl` is a JavaScript library designed to simplify interactions with the local file directory.  It provides straightforward methods for common tasks such as acquiring directory information, moving and copying files, and flattening directory structures.
 Less fs, loops, and try/catches.
 
+
 ## Installation
 To install `dirl` via npm, run the following command in your project directory:
 ```bash
@@ -28,11 +29,29 @@ dirl consists of 4 main groups of methods: `get`, `move`, `copy`, and `flatten`.
 
 `get`  [Acquires information about the directory tree such as file paths, directory sizes, and duplicate files.](#get-methods)
 
+- [get.filePaths](#get.filePaths)
+- [get.dirPaths](#get.dirPaths)
+- [get.fileCount](#get.fileCount)
+- [get.fileSizes](#get.fileSizes)
+- [get.dirSizes](#get.dirSizes)
+- [get.duplicateFiles](#get.duplicateFiles)
+
 `move`  [Moves a directory tree from one location to another.](#move-methods)
+
+- [move.overwrite](#move.overwrite)
+- [move.diff](#move.diff)
+- [move.ifNew](#move.ifNew)
 
 `copy`  [Copies a directory tree from one location to another.](#copy-methods)
 
+- [copy.overwrite](#copy.overwrite)
+- [copy.diff](#copy.diff)
+- [copy.ifNew](#copy.ifNew)
+
 `flatten`  [Copies files residing under a directory tree into a single directory.](#flatten-methods)
+
+- [flatten.all](#flatten.all)
+- [flatten.unique](#flatten.unique)
 
 ### Paths 
 Both absolute and relative paths are accepted for the directory parameter.
@@ -75,6 +94,7 @@ System generated files like `.DS_Store` and `Thumbs.db` are excluded from the re
 
 ## get methods
 
+<a id="get.filePaths"></a>
 ### dirl.get.filePaths 
 `dirl.get.filePaths(rootDir: string, filters:{dir:string, file:string, ext:string} = {})`
 
@@ -93,6 +113,7 @@ const filePaths = await dirl.get.filePaths('./my-directory');
 //filePaths is an array of file paths under ./my-directory
 ```
 
+<a id="get.dirPaths"></a>
 ### dirl.get.dirPaths
 `dirl.get.dirPaths(rootDir: string, filters:{dir:string, file:string, ext:string} = {})`
 
@@ -110,7 +131,7 @@ const dirPaths = await dirl.get.dirPaths('./my-directory', {dir: "test"});
 
 //dirPaths is an array of directory paths under ./my-directory which include "test" in their path
 ```
-
+<a id="get.fileCount"></a>
 ### dirl.get.fileCount
 
 `dirl.get.fileCount(rootDir: string, filters:{dir:string, file:string, ext:string} = {})`
@@ -129,6 +150,7 @@ const fileCount = await dirl.get.fileCount('./my-directory');
 console.log(fileCount); //4 
 ```
 
+<a id="get.fileSizes"></a>
 ### dirl.get.fileSizes
 `dirl.get.fileSizes(rootDir: string, filters:{dir:string, file:string, ext:string} = {}, mode: "int" | "str" = "str")`
 
@@ -154,7 +176,7 @@ console.log(fileSizes);
 //  { path: './my-directory/subdirectory/backup/readme.md', size: '130.25KB' }
 // ]
 ```
-
+<a id="get.dirSizes"></a>
 ### dirl.get.dirSizes
 `dirl.get.dirSizes(rootDir: string, filters: {dir:string, file:string, ext:string} = {}, mode: "int" | "str" = "str")`
 
@@ -178,7 +200,7 @@ console.log(dirSizes);
 //  { path: './my-directory/subdirectory/backup', size: '130.25KB' }
 // ]
 ```
-
+<a id="get.duplicateFiles"></a>
 ### dirl.get.duplicateFiles
 `dirl.get.duplicateFiles(rootDir: string, filters: {dir:string, file:string, ext:string} = {})`
 
@@ -204,6 +226,7 @@ console.log(duplicates);
 
 ## move methods
 
+<a id="move.overwrite"></a>
 ### dirl.move.overwrite
 `dirl.move.overwrite(srcDir: string, dstDir: string, filters: {dir:string, file:string, ext:string} = {})`
 
@@ -252,6 +275,7 @@ console.log(moveResults);
 //}
 ```
 
+<a id="move.diff"></a>
 ### dirl.move.diff
 `dirl.move.diff(srcDir: string, dstDir: string, filters: {dir:string, file:string, ext:string} = {})`
 
@@ -290,6 +314,7 @@ console.log(moveDiffResults);
 //}
 ```
 
+<a id="move.ifNew"></a>
 ### dirl.move.ifNew
 `dirl.move.ifNew(srcDir: string, dstDir: string, filters: {dir:string, file:string, ext:string} = {})`
 
@@ -327,8 +352,9 @@ console.log(moveIfNewResults);
 //}
 ```
 
-## dirl.copy
+## copy methods
 
+<a id="copy.overwrite"></a>
 ### dirl.copy.overwrite
 `dirl.copy.overwrite(srcDir: string, dstDir: string, filters: {dir:string, file:string, ext:string} = {})`
 
@@ -375,6 +401,7 @@ console.log(copyResults);
 //}
 ```
 
+<a id="copy.diff"></a>
 ### dirl.copy.diff
 `dirl.copy.diff(srcDir: string, dstDir: string, filters: Filters = {})`
 
@@ -409,6 +436,7 @@ console.log(copyDiffResults);
 //}
 ```
 
+<a id="copy.ifNew"></a>
 ### dirl.copy.ifNew
 `dirl.copy.ifNew(srcDir: string, dstDir: string, filters: Filters = {})`
 
@@ -445,6 +473,7 @@ console.log(copyIfNewResults);
 
 ## flatten methods
 
+<a id="flatten.all"></a>
 ### dirl.flatten.all
 
 `dirl.flatten.all(srcDir: string, dstDir: string, separator: string = "_", filters:{dir:string, file:string, ext:string} = {})`
@@ -496,6 +525,7 @@ console.log(flattenResults);
 //}
 ```
 
+<a id="flatten.unique"></a>
 ### dirl.flatten.unique
 `dirl.flatten.unique(srcDir: string, dstDir: string, separator: string = "_", filters:{dir:string, file:string, ext:string} = {})`
 
