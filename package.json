@@ -1,0 +1,36 @@
+{
+	"name": "@kenny619/dirl",
+	"version": "1.0.0",
+	"description": "`dirl` is a JavaScript library designed to simplify interactions with the local file directory.  It provides straightforward methods for common tasks such as acquiring directory information, moving and copying files, and flattening directory structures. Less fs, loops, and try/catches.",
+	"main": "index.js",
+	"scripts": {
+		"test": "vitest",
+		"prebuild": "rimraf dist",
+		"build": "tsc --project ./tsconfig.json && tsc-alias -p ./tsconfig.json",
+		"sandbox": "tsx --no-warnings --env-file=.env ./tests/sandbox.ts"
+	},
+	"type": "module",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Kenny619/dirl.git"
+	},
+	"author": "Kenny619",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/Kenny619/dirl.git"
+	},
+	"homepage": "https://github.com/Kenny619/dirl#readme",
+	"devDependencies": {
+		"@biomejs/biome": "^1.4.1",
+		"@types/node": "^20.11.7",
+		"rimraf": "^5.0.5",
+		"ts-jest": "^29.1.2",
+		"tsc-alias": "^1.8.8",
+		"tsx": "^4.16.2",
+		"vitest": "^1.5.2"
+	},
+	"engines": {
+		"node": "22.2.0",
+		"npm": "10.8.0"
+	}
+}
