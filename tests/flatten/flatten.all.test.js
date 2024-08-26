@@ -61,7 +61,7 @@ describe("flatten.all() - scrDir input", async () => {
 	//valid relative path
 	it("scrDir = Valid absolute path to a directory resolves to truthy value", async () => {
 		await expect(
-			dirl.flatten.all("/Users/kenny/dev/dirl/tests/testFiles/flatten/all/src/absolutePathSrc", dstDir),
+			dirl.flatten.all(path.resolve("./tests/testFiles/flatten/all/src/absolutePathSrc"), dstDir),
 		).resolves.toBeTruthy();
 		// expect(await isFileNew(path.join(root, "/absolutePathSrc"), path.join(dstDir, "/absolutePathSrc"))).toBeFalsy();
 	});
