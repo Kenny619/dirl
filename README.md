@@ -12,14 +12,14 @@ Less fs, loops, and try/catches.
 ## Installation
 To install `dirl` via npm, run the following command in your project directory:
 ```bash
-npm install dirl
+npm install @kenny619/dirl
 ```
 
 ## Usage
 To use `dirl`, first import it into your JavaScript file:
 
 ```js
-import dirl from 'dirl';
+import dirl from '@kenny619/dirl';
 ```
 
 The `dirl` class is instantiated internally with the current working directory, meaning you don't need to create an instance. You can directly access its methods. 
