@@ -1,5 +1,5 @@
 import type { Filters, MoveResults } from "./types/type.js";
-declare class DirlFlatten {
+export declare class DirlFlatten {
     /**
      * Copy files found under srcDir, flatten their directory structure and paste them to dstDir.  Subdirectory names are prepended to the file names with a separator.
      * @param  srcDir - The source directory.
@@ -21,4 +21,3 @@ If duplicate files are found, only 1 file from the duplicate group is copied.
     unique(srcDir: string, dstDir: string, separator?: string, filters?: Filters): Promise<MoveResults>;
 }
 export default DirlFlatten;
-//# sourceMappingURL=flat.d.ts.map

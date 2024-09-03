@@ -1,6 +1,6 @@
 import { flattenAll, flattenUnique } from "./utils/baseFlatten.js";
 import type { Filters, MoveResults } from "./types/type.js";
-class DirlFlatten {
+export class DirlFlatten {
 	/**
 	 * Copy files found under srcDir, flatten their directory structure and paste them to dstDir.  Subdirectory names are prepended to the file names with a separator.
 	 * @param  srcDir - The source directory.
@@ -50,5 +50,4 @@ If duplicate files are found, only 1 file from the duplicate group is copied.
 		return result;
 	}
 }
-
 export default DirlFlatten;

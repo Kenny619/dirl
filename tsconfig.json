@@ -17,13 +17,12 @@
 		"target": "ES2022",
 		"allowJs": true,
 		"declaration": true,
-		"declarationMap": true,
-		"declarationDir": "./dist/types"
+		"declarationMap": false
 	},
 	"ts-node": {
 		"esm": true,
 		"experimentalSpecifierResolution": "node"
 	},
-	"include": ["src/**/*.ts"],
+	"include": ["src", "types"],
 	"exclude": ["node_modules"]
 }

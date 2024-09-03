@@ -27,4 +27,3 @@ export declare const getPaths: (root: string, mode?: "dir" | "file" | "all", fil
  * @returns Promise<boolean> - Resolves with true if the directory and its subdirectories are empty, false otherwise.
  */
 export declare const isDirTreeEmpty: (root: string) => Promise<boolean>;
-//# sourceMappingURL=base.d.ts.map

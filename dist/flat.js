@@ -1,5 +1,5 @@
 import { flattenAll, flattenUnique } from "./utils/baseFlatten.js";
-class DirlFlatten {
+export class DirlFlatten {
     /**
      * Copy files found under srcDir, flatten their directory structure and paste them to dstDir.  Subdirectory names are prepended to the file names with a separator.
      * @param  srcDir - The source directory.

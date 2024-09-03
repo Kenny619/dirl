@@ -28,4 +28,3 @@ export declare const getDirSizes: <T extends "int" | "str">(rootDir: string, fil
  * @returns {string[][]} A promise that resolves to an array of duplicate paths.  Each array element is an array of duplicate file paths.
  */
 export declare const getDuplicates: (rootDir: string, filters?: Filters) => Promise<ReturnFormat<string[][]>>;
-//# sourceMappingURL=baseGet.d.ts.map

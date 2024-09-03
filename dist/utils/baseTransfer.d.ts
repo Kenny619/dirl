@@ -15,4 +15,3 @@ export declare const getMovableDirents: (srcDir: string, dstDir: string, dirent:
     dirent: Dirent;
 } | null>;
 export declare const delSrc: (srcPath: string, dirent: Dirent) => Promise<void>;
-//# sourceMappingURL=baseTransfer.d.ts.map

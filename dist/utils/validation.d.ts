@@ -17,4 +17,3 @@ export declare const validateDstDir: (dstDir: string) => Promise<boolean>;
  * @returns Promise<void> - Resolves when the source and destination directories are valid.
  */
 export declare const validatetDirs: (srcDir: string, dstDir: string) => Promise<void>;
-//# sourceMappingURL=validation.d.ts.map

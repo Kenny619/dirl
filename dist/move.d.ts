@@ -1,7 +1,7 @@
 import type { Filters, MoveResults } from "./types/type.js";
-declare class DirlCopy {
+export declare class DirlMove {
     /**
-     * Copies files from srcDir to dstDir, overwriting files in dstDir if they exist.
+     * Moves files from srcDir to dstDir, overwriting files in dstDir if they exist.
      * @param  srcDir - The source directory.
      * @param  dstDir - The destination directory.
      * @param  filters - {dir: string, file: string, ext: string}  Regular Expressions strings that match against direrctory path, filename, and file extension for selecting source files.   If multiple properties are specified, all properties must match for the file to pass the filter.
@@ -9,7 +9,7 @@ declare class DirlCopy {
      */
     overwrite(srcDir: string, dstDir: string, filters?: Filters): Promise<MoveResults>;
     /**
-     * Copies files from srcDir to dstDir only if the source files don't exist in destination directory.
+     * Moves files from srcDir to dstDir only if the source file doesn't exist in destination directory.
      * @param srcDir - The source directory.
      * @param dstDir - The destination directory.
      * @param  filters - {dir: string, file: string, ext: string}  Regular Expressions strings that match against direrctory path, filename, and file extension for selecting source files.   If multiple properties are specified, all properties must match for the file to pass the filter.
@@ -17,7 +17,7 @@ declare class DirlCopy {
      */
     diff(srcDir: string, dstDir: string, filters?: Filters): Promise<MoveResults>;
     /**
-     * Copies files from srcDir to dstDir.  If files exist in dstDir, they are overwritten only when the source file is newer than the destination file.
+     * Moves files from srcDir to dstDir.  If files exist in dstDir, they are overwritten only when the source file is newer than the destination file.
      * @param srcDir - The source directory.
      * @param dstDir - The destination directory.
      * @param  filters - {dir: string, file: string, ext: string}  Regular Expressions strings that match against direrctory path, filename, and file extension for selecting source files.   If multiple properties are specified, all properties must match for the file to pass the filter.
@@ -25,5 +25,4 @@ declare class DirlCopy {
      */
     ifNew(srcDir: string, dstDir: string, filters?: Filters): Promise<MoveResults>;
 }
-export default DirlCopy;
-//# sourceMappingURL=copy.d.ts.map
+export default DirlMove;

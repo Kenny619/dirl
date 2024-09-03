@@ -14,4 +14,3 @@ export declare const applyFilter: (dirents: Dirent[], regexFilters: RegexFilters
  * @returns The regex filter.
  */
 export declare const createRegexFilters: (filters: Filters) => RegexFilters | null;
-//# sourceMappingURL=filter.d.ts.map
