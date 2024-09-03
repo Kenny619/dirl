@@ -8,12 +8,12 @@ export const transferFiles = async (srcDir, dstDir, mode, filters) => {
         await validatetDirs(srcDir, dstDir);
     }
     catch (e) {
-        return { data: null, err: e };
+        return { result: null, err: e };
     }
     //get source directory and file paths
-    const { data: srcFilePaths, err: e } = await getDirents(srcDir, "all", filters);
+    const { result: srcFilePaths, err: e } = await getDirents(srcDir, "all", filters);
     if (e)
-        return { data: null, err: e };
+        return { result: null, err: e };
     //reverse order.  Working from bottom to top allowing empty dir to be deleted
     //when mode is set to move
     srcFilePaths.reverse();
@@ -28,7 +28,7 @@ export const transferFiles = async (srcDir, dstDir, mode, filters) => {
     }))).filter((result) => result !== null);
     //if no movable items are found return empty moveResults
     if (movables.length === 0)
-        return { data: moveResults, err: null };
+        return { result: moveResults, err: null };
     //transfer files
     for (const entry of movables) {
         //
@@ -72,7 +72,7 @@ export const transferFiles = async (srcDir, dstDir, mode, filters) => {
         //copy/move operation is successfully done.  Push file paths into moveResults.succeeded
         moveResults.succeeded.push({ srcFilePath, dstFilePath });
     }
-    return { data: moveResults, err: null };
+    return { result: moveResults, err: null };
 };
 /**
  * Checks if a file can be copied/moved to a destination directory.  If movable, returns a promise of an object with srcFilePath, dstFilePath, and dirent properties.  Otherwise, returns null.
@@ -103,7 +103,9 @@ export const getMovableDirents = async (srcDir, dstDir, dirent, mode) => {
         //For mode === copyIfNew/moveIfNew,  check the last modified date.
         //Return true if src file is newer than dst
         if (mode === "copyIfNew" || mode === "moveIfNew") {
-            return srcFileStat.mtimeMs > dstFileStat.mtimeMs ? { srcFilePath, dstFilePath, dirent } : null;
+            return srcFileStat.mtimeMs > dstFileStat.mtimeMs
+                ? { srcFilePath, dstFilePath, dirent }
+                : null;
         }
         //For mode === copyDiff/moveDiff.
         //Return false if a file already exists in dstFilePath

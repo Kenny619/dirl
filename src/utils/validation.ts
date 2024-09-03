@@ -7,7 +7,10 @@ import fsp from "node:fs/promises";
 export const validateSrcDir = async (srcDir: string): Promise<void> => {
 	try {
 		const stat = await fsp.stat(srcDir);
-		if (!stat.isDirectory()) throw new Error(`${srcDir} is not a directory.  Please provide a directory path.`);
+		if (!stat.isDirectory())
+			throw new Error(
+				`${srcDir} is not a directory.  Please provide a directory path.`,
+			);
 		if (stat.isDirectory()) await fsp.access(srcDir, fsp.constants.R_OK);
 	} catch (e) {
 		throw e as Error;
@@ -42,7 +45,9 @@ export const validateDstDir = async (dstDir: string): Promise<boolean> => {
 	} catch (e) {
 		//ignore error if fs couldn't locate the file.  throw error only when the error is other than ENOENT.
 		if (!/ENOENT|EPERM/.test((e as Error).message))
-			throw new Error(`Failed to unlink test file in ${dstDir} ${(e as Error).message} ${(e as Error).stack}`);
+			throw new Error(
+				`Failed to unlink test file in ${dstDir} ${(e as Error).message} ${(e as Error).stack}`,
+			);
 	}
 	return true;
 };
@@ -53,8 +58,14 @@ export const validateDstDir = async (dstDir: string): Promise<boolean> => {
  * @param dstDir - The destination directory.
  * @returns Promise<void> - Resolves when the source and destination directories are valid.
  */
-export const validatetDirs = async (srcDir: string, dstDir: string): Promise<void> => {
-	if (srcDir === dstDir) throw new Error("source directory and destination directory cannot be the same.");
+export const validatetDirs = async (
+	srcDir: string,
+	dstDir: string,
+): Promise<void> => {
+	if (srcDir === dstDir)
+		throw new Error(
+			"source directory and destination directory cannot be the same.",
+		);
 
 	try {
 		await validateSrcDir(srcDir);

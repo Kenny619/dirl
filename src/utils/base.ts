@@ -5,6 +5,7 @@ import process from "node:process";
 import { ignoreFiles } from "./ignoreFIles.js";
 import { applyFilter, createRegexFilters } from "./filter.js";
 import { validateSrcDir } from "./validation.js";
+import type { Filters, ReturnFormat } from "../types/type.js";
 /**
  * note:1
  * In order to avoid the rejection of fsp.readdir promise when meeting a file/directory that is not accessible,
@@ -70,9 +71,14 @@ export const getPaths = async (
 	if (err !== null) return { result: null, err };
 
 	//create a collator for sorting
-	const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+	const collator = new Intl.Collator(undefined, {
+		numeric: true,
+		sensitivity: "base",
+	});
 	//convert dirents to paths and sort the result alphabetically based on user's locale
-	const result = dirents.map((dirent) => path.join(dirent.parentPath, dirent.name)).sort(collator.compare);
+	const result = dirents
+		.map((dirent) => path.join(dirent.parentPath, dirent.name))
+		.sort(collator.compare);
 
 	return { result, err: null };
 };
@@ -84,14 +90,20 @@ export const getPaths = async (
  * @param mode - "dir" for directory only.  "file" for file only. "all" for both file and directory.
  * @param dirents - The list of accessible items.
  */
-const readdirRecursion = async (root: string, mode: "dir" | "file" | "all", dirents: Dirent[]): Promise<void> => {
+const readdirRecursion = async (
+	root: string,
+	mode: "dir" | "file" | "all",
+	dirents: Dirent[],
+): Promise<void> => {
 	const subDirs = await fsp.readdir(root, { withFileTypes: true });
 
 	//if dirents is empty, add the dirent of root directory to dirents
 	if (mode !== "file" && dirents.length === 0) {
 		const parentPath = path.dirname(root);
 		const pDirents = await fsp.readdir(parentPath, { withFileTypes: true });
-		const rootDirent = pDirents.find((dirent) => dirent.name === path.basename(root));
+		const rootDirent = pDirents.find(
+			(dirent) => dirent.name === path.basename(root),
+		);
 		rootDirent && dirents.push(rootDirent);
 	}
 
@@ -106,7 +118,8 @@ const readdirRecursion = async (root: string, mode: "dir" | "file" | "all", dire
 					if (mode === "file" && sub.isFile()) dirents.push(sub);
 					if (mode === "all") dirents.push(sub);
 
-					if (sub.isDirectory()) await readdirRecursion(subPathName, mode, dirents);
+					if (sub.isDirectory())
+						await readdirRecursion(subPathName, mode, dirents);
 				} catch (e) {
 					return;
 				}

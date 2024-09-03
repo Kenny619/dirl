@@ -22,7 +22,7 @@ export const getDirents = async (root, mode = "all", filters) => {
         await validateSrcDir(root);
     }
     catch (e) {
-        return { data: null, err: e };
+        return { result: null, err: e };
     }
     //convert root path to absolute path
     const absPath = path.resolve(process.cwd(), root);
@@ -34,13 +34,13 @@ export const getDirents = async (root, mode = "all", filters) => {
         await readdirRecursion(absPath, mode, dirents);
     }
     catch (e) {
-        return { data: null, err: e };
+        return { result: null, err: e };
     }
     //create regex filters
     const regexFilters = createRegexFilters(filters);
     //filter out dirents that don't match the regex filters.
-    const data = regexFilters ? applyFilter(dirents, regexFilters) : dirents;
-    return { data, err: null };
+    const result = regexFilters ? applyFilter(dirents, regexFilters) : dirents;
+    return { result, err: null };
 };
 /**
  * Get a list of paths of file system entries under root directory, including the root directory itself.
@@ -51,14 +51,19 @@ export const getDirents = async (root, mode = "all", filters) => {
  */
 export const getPaths = async (root, mode = "all", filters) => {
     //get dirents
-    const { data: dirents, err } = await getDirents(root, mode, filters);
+    const { result: dirents, err } = await getDirents(root, mode, filters);
     if (err !== null)
-        return { data: null, err };
+        return { result: null, err };
     //create a collator for sorting
-    const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+    const collator = new Intl.Collator(undefined, {
+        numeric: true,
+        sensitivity: "base",
+    });
     //convert dirents to paths and sort the result alphabetically based on user's locale
-    const data = dirents.map((dirent) => path.join(dirent.parentPath, dirent.name)).sort(collator.compare);
-    return { data, err: null };
+    const result = dirents
+        .map((dirent) => path.join(dirent.parentPath, dirent.name))
+        .sort(collator.compare);
+    return { result, err: null };
 };
 /**
  * Traverse a directory and its subdirectories and return a list of accessible items
@@ -106,7 +111,7 @@ const readdirRecursion = async (root, mode, dirents) => {
  */
 export const isDirTreeEmpty = async (root) => {
     try {
-        const { data: dirs, err } = await getPaths(root, "dir");
+        const { result: dirs, err } = await getPaths(root, "dir");
         if (err !== null)
             throw err;
         //return false (not empty) if any of the subdirectories contain files

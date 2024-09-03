@@ -8,10 +8,10 @@ class DirlCopy {
      * @returns - A promise that resolves to copy operation results.  If copy was done successfully, src and dst path are stored in "succeeded" property.  If copy failed, failed src and dest path along with Error object are stored in the "failed" property.
      */
     async overwrite(srcDir, dstDir, filters = {}) {
-        const { data, err } = await transferFiles(srcDir, dstDir, "copyOverwrite", filters);
+        const { result, err } = await transferFiles(srcDir, dstDir, "copyOverwrite", filters);
         if (err !== null)
             throw err;
-        return data;
+        return result;
     }
     /**
      * Copies files from srcDir to dstDir only if the source files don't exist in destination directory.
@@ -21,10 +21,10 @@ class DirlCopy {
      * @returns - A promise that resolves to copy operation results.  If copy was done successfully, src and dst path are stored in "succeeded" property.  If copy failed, failed src and dest path along with Error object are stored in the "failed" property.
      */
     async diff(srcDir, dstDir, filters = {}) {
-        const { data, err } = await transferFiles(srcDir, dstDir, "copyDiff", filters);
+        const { result, err } = await transferFiles(srcDir, dstDir, "copyDiff", filters);
         if (err !== null)
             throw err;
-        return data;
+        return result;
     }
     /**
      * Copies files from srcDir to dstDir.  If files exist in dstDir, they are overwritten only when the source file is newer than the destination file.
@@ -34,10 +34,10 @@ class DirlCopy {
      * @returns - A promise that resolves to copy operation results.  If copy was done successfully, src and dst path are stored in "succeeded" property.  If copy failed, failed src and dest path along with Error object are stored in the "failed" property.
      */
     async ifNew(srcDir, dstDir, filters = {}) {
-        const { data, err } = await transferFiles(srcDir, dstDir, "copyIfNew", filters);
+        const { result, err } = await transferFiles(srcDir, dstDir, "copyIfNew", filters);
         if (err !== null)
             throw err;
-        return data;
+        return result;
     }
 }
 export default DirlCopy;
