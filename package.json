@@ -1,6 +1,6 @@
 {
 	"name": "@kenny619/dirl",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"description": "`dirl` is a JavaScript library designed to simplify interactions with the local file directory.  It provides straightforward methods for common tasks such as acquiring directory information, moving and copying files, and flattening directory structures. Less fs, loops, and try/catches.",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
