@@ -11,19 +11,25 @@ import { validateSrcDir } from "./validation.js";
  */
 export const getFileSizes = async (rootDir, filters = {}, mode = "str") => {
     try {
-        const { data: filePaths, err } = await getPaths(rootDir, "file", filters);
+        const { result: filePaths, err } = await getPaths(rootDir, "file", filters);
         if (err !== null)
             throw err;
         //run stat() on each file path and return an array of file sizes
         //convert file size in metric prefixes if mode is "str"
-        const data = await Promise.all(filePaths.map(async (file) => {
+        const result = await Promise.all(filePaths.map(async (file) => {
             const stats = await fsp.stat(file);
-            return { path: file, size: mode === "str" ? formatFileSizeInBytes(stats.size) : stats.size };
+            return {
+                path: file,
+                size: mode === "str" ? formatFileSizeInBytes(stats.size) : stats.size,
+            };
         }));
-        return { data: data, err: null };
+        return {
+            result: result,
+            err: null,
+        };
     }
     catch (e) {
-        return { data: null, err: e };
+        return { result: null, err: e };
     }
 };
 /**
@@ -36,11 +42,11 @@ export const getFileSizes = async (rootDir, filters = {}, mode = "str") => {
 export const getDirSizes = async (rootDir, filters = {}, mode = "str") => {
     //get file sizes of all files under the root dir
     //fileSizes = { path: string; size: number }[]
-    const { data: fileSizes, err } = await getFileSizes(rootDir, filters, "int");
+    const { result: fileSizes, err } = await getFileSizes(rootDir, filters, "int");
     if (err !== null)
         throw err;
     //get a list of all directories under the root dir
-    const { data: dirs, err: errGetDirs } = await getPaths(rootDir, "dir", filters);
+    const { result: dirs, err: errGetDirs } = await getPaths(rootDir, "dir", filters);
     if (errGetDirs !== null)
         throw errGetDirs;
     //create initial value for dirSizes which takes directories as key and sets the value to 0
@@ -72,8 +78,11 @@ export const getDirSizes = async (rootDir, filters = {}, mode = "str") => {
         }
     }
     return {
-        data: Object.keys(dirSizes).map((dir) => {
-            return { path: dir, size: mode === "str" ? formatFileSizeInBytes(dirSizes[dir]) : dirSizes[dir] };
+        result: Object.keys(dirSizes).map((dir) => {
+            return {
+                path: dir,
+                size: mode === "str" ? formatFileSizeInBytes(dirSizes[dir]) : dirSizes[dir],
+            };
         }),
         err: null,
     };
@@ -84,7 +93,19 @@ export const getDirSizes = async (rootDir, filters = {}, mode = "str") => {
  * @returns {string} The file size in bytes with metric prefixes.
  */
 const formatFileSizeInBytes = (bytes) => {
-    const units = ["B ", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB", "RB", "QB"];
+    const units = [
+        "B ",
+        "KB",
+        "MB",
+        "GB",
+        "TB",
+        "PB",
+        "EB",
+        "ZB",
+        "YB",
+        "RB",
+        "QB",
+    ];
     let i = 0;
     let b = bytes;
     while (b >= 1024 && i < units.length - 1) {
@@ -102,7 +123,7 @@ const formatFileSizeInBytes = (bytes) => {
  */
 const groupFilesBySize = async (rootDir, filters = {}) => {
     //get file sizes
-    const { data: fileSizes, err } = await getFileSizes(rootDir, filters, "int");
+    const { result: fileSizes, err } = await getFileSizes(rootDir, filters, "int");
     if (err !== null)
         throw err;
     //group file path by file sizes
@@ -162,7 +183,9 @@ export const getDuplicates = async (rootDir, filters = {}) => {
                     const arrIndex = groupByContents.findIndex((ary) => ary.includes(duplicate[0]) || ary.includes(duplicate[1]));
                     //if found, add the current file path to the accumulator array
                     //if not found, push current file path array to the accumulator array
-                    arrIndex !== -1 ? groupByContents[arrIndex].push(...duplicate) : groupByContents.push(duplicate);
+                    arrIndex !== -1
+                        ? groupByContents[arrIndex].push(...duplicate)
+                        : groupByContents.push(duplicate);
                 }
                 duplicateSets.push(...groupByContents.map((ary) => Array.from(new Set(ary))));
             }
@@ -170,10 +193,10 @@ export const getDuplicates = async (rootDir, filters = {}) => {
                 duplicateSets.push(...duplicates);
             }
         }
-        return { data: duplicateSets, err: null };
+        return { result: duplicateSets, err: null };
     }
     catch (e) {
-        return { data: null, err: e };
+        return { result: null, err: e };
     }
 };
 /**

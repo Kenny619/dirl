@@ -3,7 +3,12 @@ import path from "node:path";
 import type { Stats, Dirent } from "node:fs";
 import { getDirents, isDirTreeEmpty } from "./base.js";
 import { validatetDirs } from "./validation.js";
-
+import type {
+	Filters,
+	ReturnFormat,
+	MoveResults,
+	Mode,
+} from "../types/type.js";
 type MovableOutput = {
 	srcFilePath: string;
 	dstFilePath: string;
@@ -24,7 +29,11 @@ export const transferFiles = async (
 	}
 
 	//get source directory and file paths
-	const { result: srcFilePaths, err: e } = await getDirents(srcDir, "all", filters);
+	const { result: srcFilePaths, err: e } = await getDirents(
+		srcDir,
+		"all",
+		filters,
+	);
 	if (e) return { result: null, err: e };
 
 	//reverse order.  Working from bottom to top allowing empty dir to be deleted
@@ -109,9 +118,16 @@ export const getMovableDirents = async (
 	dstDir: string,
 	dirent: Dirent,
 	mode: Mode,
-): Promise<{ srcFilePath: string; dstFilePath: string; dirent: Dirent } | null> => {
+): Promise<{
+	srcFilePath: string;
+	dstFilePath: string;
+	dirent: Dirent;
+} | null> => {
 	const srcFilePath = path.join(dirent.parentPath, dirent.name);
-	const dstFilePath = srcFilePath.replace(path.resolve(srcDir), path.resolve(dstDir));
+	const dstFilePath = srcFilePath.replace(
+		path.resolve(srcDir),
+		path.resolve(dstDir),
+	);
 
 	//No further checks for *Overwrite
 	if (mode === "copyOverwrite" || mode === "moveOverwrite") {
@@ -133,7 +149,9 @@ export const getMovableDirents = async (
 		//For mode === copyIfNew/moveIfNew,  check the last modified date.
 		//Return true if src file is newer than dst
 		if (mode === "copyIfNew" || mode === "moveIfNew") {
-			return srcFileStat.mtimeMs > dstFileStat.mtimeMs ? { srcFilePath, dstFilePath, dirent } : null;
+			return srcFileStat.mtimeMs > dstFileStat.mtimeMs
+				? { srcFilePath, dstFilePath, dirent }
+				: null;
 		}
 
 		//For mode === copyDiff/moveDiff.

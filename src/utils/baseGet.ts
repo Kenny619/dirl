@@ -2,7 +2,7 @@ import fsp from "node:fs/promises";
 import path from "node:path";
 import { getPaths } from "./base.js";
 import { validateSrcDir } from "./validation.js";
-
+import type { Filters, ReturnFormat } from "../types/type.js";
 /**
  * Returns a list of file sizes under the root directory. Returns an empty array if the directory tree had no files.
  * @param {string} rootDir - The root directory to search for files.
@@ -14,7 +14,9 @@ export const getFileSizes = async <T extends "int" | "str">(
 	rootDir: string,
 	filters: Filters = {},
 	mode: T = "str" as T,
-): Promise<ReturnFormat<{ path: string; size: T extends "int" ? number : string }[]>> => {
+): Promise<
+	ReturnFormat<{ path: string; size: T extends "int" ? number : string }[]>
+> => {
 	try {
 		const { result: filePaths, err } = await getPaths(rootDir, "file", filters);
 		if (err !== null) throw err as Error;
@@ -24,10 +26,19 @@ export const getFileSizes = async <T extends "int" | "str">(
 		const result = await Promise.all(
 			filePaths.map(async (file) => {
 				const stats = await fsp.stat(file);
-				return { path: file, size: mode === "str" ? formatFileSizeInBytes(stats.size) : stats.size };
+				return {
+					path: file,
+					size: mode === "str" ? formatFileSizeInBytes(stats.size) : stats.size,
+				};
 			}),
 		);
-		return { result: result as { path: string; size: T extends "int" ? number : string }[], err: null };
+		return {
+			result: result as {
+				path: string;
+				size: T extends "int" ? number : string;
+			}[],
+			err: null,
+		};
 	} catch (e) {
 		return { result: null, err: e as Error };
 	}
@@ -47,26 +58,40 @@ export const getDirSizes = async <T extends "int" | "str">(
 ): Promise<ReturnFormat<{ path: string; size: string | number }[]>> => {
 	//get file sizes of all files under the root dir
 	//fileSizes = { path: string; size: number }[]
-	const { result: fileSizes, err } = await getFileSizes(rootDir, filters, "int");
+	const { result: fileSizes, err } = await getFileSizes(
+		rootDir,
+		filters,
+		"int",
+	);
 	if (err !== null) throw err as Error;
 
 	//get a list of all directories under the root dir
-	const { result: dirs, err: errGetDirs } = await getPaths(rootDir, "dir", filters);
+	const { result: dirs, err: errGetDirs } = await getPaths(
+		rootDir,
+		"dir",
+		filters,
+	);
 	if (errGetDirs !== null) throw errGetDirs as Error;
 
 	//create initial value for dirSizes which takes directories as key and sets the value to 0
-	const dirSizesInit: { [Key: string]: number } = dirs.reduce((acc: { [Key: string]: number }, dir) => {
-		acc[dir as keyof typeof acc] = 0;
-		return acc;
-	}, {});
+	const dirSizesInit: { [Key: string]: number } = dirs.reduce(
+		(acc: { [Key: string]: number }, dir) => {
+			acc[dir as keyof typeof acc] = 0;
+			return acc;
+		},
+		{},
+	);
 
 	//sum the file sizes by directory
 	//store the result in an object {[directory path: string]: number} where number is the sum of file sizes in bytes
-	const dirSizes: { [Key: string]: number } = fileSizes.reduce((acc: { [Key: string]: number }, file) => {
-		const dir = path.dirname(file.path);
-		acc[dir] = (acc[dir] || 0) + file.size;
-		return acc;
-	}, dirSizesInit);
+	const dirSizes: { [Key: string]: number } = fileSizes.reduce(
+		(acc: { [Key: string]: number }, file) => {
+			const dir = path.dirname(file.path);
+			acc[dir] = (acc[dir] || 0) + file.size;
+			return acc;
+		},
+		dirSizesInit,
+	);
 
 	//Recursively add sum of subdirectory size sum to its parent directory
 	//In the following example, the size of directory C, with no subdirectories, is 50KB.
@@ -80,13 +105,18 @@ export const getDirSizes = async <T extends "int" | "str">(
 	// └── file (size 100KB)
 	for (const dir in dirSizes) {
 		for (const subDir in dirSizes) {
-			if (dir !== subDir && subDir.startsWith(dir)) dirSizes[dir] += dirSizes[subDir];
+			if (dir !== subDir && subDir.startsWith(dir))
+				dirSizes[dir] += dirSizes[subDir];
 		}
 	}
 
 	return {
 		result: Object.keys(dirSizes).map((dir) => {
-			return { path: dir, size: mode === "str" ? formatFileSizeInBytes(dirSizes[dir]) : dirSizes[dir] };
+			return {
+				path: dir,
+				size:
+					mode === "str" ? formatFileSizeInBytes(dirSizes[dir]) : dirSizes[dir],
+			};
 		}),
 		err: null,
 	};
@@ -98,7 +128,19 @@ export const getDirSizes = async <T extends "int" | "str">(
  * @returns {string} The file size in bytes with metric prefixes.
  */
 const formatFileSizeInBytes = (bytes: number): string => {
-	const units = ["B ", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB", "RB", "QB"];
+	const units = [
+		"B ",
+		"KB",
+		"MB",
+		"GB",
+		"TB",
+		"PB",
+		"EB",
+		"ZB",
+		"YB",
+		"RB",
+		"QB",
+	];
 	let i = 0;
 	let b = bytes;
 
@@ -122,19 +164,26 @@ const groupFilesBySize = async (
 	filters: Filters = {},
 ): Promise<{ size: number; paths: string[] }[]> => {
 	//get file sizes
-	const { result: fileSizes, err } = await getFileSizes(rootDir, filters, "int");
+	const { result: fileSizes, err } = await getFileSizes(
+		rootDir,
+		filters,
+		"int",
+	);
 	if (err !== null) throw err as Error;
 
 	//group file path by file sizes
 	//return {[key in number]: string[]} where number is the file size and the string is the file path
-	const sizeGroup = fileSizes.reduce((acc: { [Key: number]: string[] }, cur: { size: number; path: string }) => {
-		if (Object.hasOwn(acc, cur.size)) {
-			acc[cur.size].push(cur.path);
-		} else {
-			acc[cur.size] = [cur.path];
-		}
-		return acc;
-	}, {});
+	const sizeGroup = fileSizes.reduce(
+		(acc: { [Key: number]: string[] }, cur: { size: number; path: string }) => {
+			if (Object.hasOwn(acc, cur.size)) {
+				acc[cur.size].push(cur.path);
+			} else {
+				acc[cur.size] = [cur.path];
+			}
+			return acc;
+		},
+		{},
+	);
 
 	return Object.entries(sizeGroup).map(([size, paths]) => {
 		return { size: Number(size), paths };
@@ -147,7 +196,10 @@ const groupFilesBySize = async (
  * @param {Filters} filters - {dir: string, file: string, ext: string}  "dir" and "file" filters are checked against the directory and file name respectively.  "ext" filter is checked against the file extension.  If multiple properties are specified, all properties must match for the file to pass the filter.
  * @returns {string[][]} A promise that resolves to an array of duplicate paths.  Each array element is an array of duplicate file paths.
  */
-export const getDuplicates = async (rootDir: string, filters: Filters = {}): Promise<ReturnFormat<string[][]>> => {
+export const getDuplicates = async (
+	rootDir: string,
+	filters: Filters = {},
+): Promise<ReturnFormat<string[][]>> => {
 	//compare two files to see if they are identical
 	//if they are, return an array of the two file paths.  Otherwise, return null.
 	const isDuplicate = async (f1: string, f2: string, size: number) => {
@@ -157,7 +209,9 @@ export const getDuplicates = async (rootDir: string, filters: Filters = {}): Pro
 		await validateSrcDir(rootDir);
 
 		//group files by file size.  filter out groups with only one file.
-		const fileGroups = (await groupFilesBySize(rootDir, filters)).filter((group) => group.paths.length > 1);
+		const fileGroups = (await groupFilesBySize(rootDir, filters)).filter(
+			(group) => group.paths.length > 1,
+		);
 		//end result
 		const duplicateSets: string[][] = [];
 
@@ -173,7 +227,11 @@ export const getDuplicates = async (rootDir: string, filters: Filters = {}): Pro
 			for (let i = 0; i < group.paths.length - 1; i++) {
 				for (let j = i + 1; j < group.paths.length; j++) {
 					//if files are identical, push an array of the two file paths.  Otherwise push null.
-					const duplicate = await isDuplicate(group.paths[i], group.paths[j], group.size);
+					const duplicate = await isDuplicate(
+						group.paths[i],
+						group.paths[j],
+						group.size,
+					);
 					if (duplicate !== null) duplicates.push(duplicate);
 				}
 			}
@@ -183,12 +241,18 @@ export const getDuplicates = async (rootDir: string, filters: Filters = {}): Pro
 			const groupByContents: string[][] = [];
 			if (duplicates.length > 1) {
 				for (const duplicate of duplicates) {
-					const arrIndex = groupByContents.findIndex((ary) => ary.includes(duplicate[0]) || ary.includes(duplicate[1]));
+					const arrIndex = groupByContents.findIndex(
+						(ary) => ary.includes(duplicate[0]) || ary.includes(duplicate[1]),
+					);
 					//if found, add the current file path to the accumulator array
 					//if not found, push current file path array to the accumulator array
-					arrIndex !== -1 ? groupByContents[arrIndex].push(...duplicate) : groupByContents.push(duplicate);
+					arrIndex !== -1
+						? groupByContents[arrIndex].push(...duplicate)
+						: groupByContents.push(duplicate);
 				}
-				duplicateSets.push(...groupByContents.map((ary) => Array.from(new Set(ary))));
+				duplicateSets.push(
+					...groupByContents.map((ary) => Array.from(new Set(ary))),
+				);
 			} else {
 				duplicateSets.push(...duplicates);
 			}
@@ -208,7 +272,11 @@ export const getDuplicates = async (rootDir: string, filters: Filters = {}): Pro
  * @param {number} fileSize - The size of the file in bytes.
  * @returns {boolean} A promise that resolves to true if the files are identical and false if they are not.
  */
-const compareFileBuffer = async (f1: string, f2: string, fileSize?: number): Promise<boolean> => {
+const compareFileBuffer = async (
+	f1: string,
+	f2: string,
+	fileSize?: number,
+): Promise<boolean> => {
 	//reading 8KB at a time
 	const bufferSize = Buffer.poolSize || 8 * 1024;
 
@@ -239,7 +307,8 @@ const compareFileBuffer = async (f1: string, f2: string, fileSize?: number): Pro
 		//continue until all file contents are compared
 		while (remainingSize > 0) {
 			//set buffer size to the remaining size if it is less than the buffer size
-			const readBufferSize = remainingSize > bufferSize ? bufferSize : remainingSize;
+			const readBufferSize =
+				remainingSize > bufferSize ? bufferSize : remainingSize;
 
 			//read file contents into buffer
 			const [file1Shard, file2Shard] = await Promise.all([
@@ -248,11 +317,16 @@ const compareFileBuffer = async (f1: string, f2: string, fileSize?: number): Pro
 			]);
 
 			//throw error if read failed or read result is less than bufferSize
-			if (file1Shard === null || file2Shard === null) throw new Error("read failed in compareFileBuffer.");
+			if (file1Shard === null || file2Shard === null)
+				throw new Error("read failed in compareFileBuffer.");
 			if (file1Shard.bytesRead < readBufferSize)
-				throw new Error(`compareFileBuffer failed.  read result for ${f1} is less than the set bufferSize.`);
+				throw new Error(
+					`compareFileBuffer failed.  read result for ${f1} is less than the set bufferSize.`,
+				);
 			if (file2Shard.bytesRead < readBufferSize)
-				throw new Error(`compareFileBuffer failed.  read result for ${f2} is less than the set bufferSize.`);
+				throw new Error(
+					`compareFileBuffer failed.  read result for ${f2} is less than the set bufferSize.`,
+				);
 
 			//If two buffers are not identical, return false
 			if (!buf1.equals(buf2)) {

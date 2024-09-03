@@ -1,6 +1,7 @@
 import path from "node:path";
 import type { Dirent } from "node:fs";
 import { ignoreFiles } from "./ignoreFIles.js";
+import type { Filters, RegexFilters } from "../types/type.js";
 
 /**
  * Apply regex filters to a list of dirents.
@@ -19,9 +20,12 @@ export const applyFilter = (dirents: Dirent[], regexFilters: RegexFilters) => {
 		if (dirent.isFile()) {
 			if (ignoreFiles.includes(dirent.name)) return false;
 
-			if (regexFilters.dir && !regexFilters.dir.test(dirent.parentPath)) return false;
-			if (regexFilters.file && !regexFilters.file.test(dirent.name)) return false;
-			if (regexFilters.ext && !regexFilters.ext.test(path.extname(dirent.name))) return false;
+			if (regexFilters.dir && !regexFilters.dir.test(dirent.parentPath))
+				return false;
+			if (regexFilters.file && !regexFilters.file.test(dirent.name))
+				return false;
+			if (regexFilters.ext && !regexFilters.ext.test(path.extname(dirent.name)))
+				return false;
 
 			return true;
 		}
@@ -46,7 +50,9 @@ export const createRegexFilters = (filters: Filters): RegexFilters | null => {
 	return Object.keys(filters).reduce((acc: RegexFilters, key) => {
 		if (!["dir", "file", "ext"].includes(key)) return acc;
 		try {
-			acc[key as keyof RegexFilters] = new RegExp(filters[key as keyof Filters] as string);
+			acc[key as keyof RegexFilters] = new RegExp(
+				filters[key as keyof Filters] as string,
+			);
 		} catch (e) {
 			throw e as Error;
 		}

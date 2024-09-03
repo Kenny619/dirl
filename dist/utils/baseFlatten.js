@@ -9,20 +9,20 @@ export const flattenAll = async (srcDir, dstDir, separator = "_", filters = {}) 
         await validatetDirs(srcDir, dstDir);
     }
     catch (e) {
-        return { data: null, err: e };
+        return { result: null, err: e };
     }
     try {
         //validate separator
         valSeparator(separator);
         //get file paths residing under srcDir
-        const { data: files, err } = await getPaths(srcDir, "file", filters);
+        const { result: files, err } = await getPaths(srcDir, "file", filters);
         if (err)
-            return { data: null, err: err };
+            return { result: null, err: err };
         //return format
-        const data = { succeeded: [], failed: [] };
+        const result = { succeeded: [], failed: [] };
         //return if no files are found under srcDir
         if (files.length === 0)
-            return { data, err: null };
+            return { result, err: null };
         //convert dstDir into an absolute path to align the format with srcDir
         const absDstDir = path.resolve(dstDir);
         //get filename to be used in the destination dir
@@ -30,16 +30,16 @@ export const flattenAll = async (srcDir, dstDir, separator = "_", filters = {}) 
             const dstFilePath = flattenFilePath(srcFilePath, separator, srcDir, absDstDir);
             try {
                 await fsp.copyFile(srcFilePath, dstFilePath);
-                data.succeeded.push({ srcFilePath, dstFilePath });
+                result.succeeded.push({ srcFilePath, dstFilePath });
             }
             catch (e) {
-                data.failed.push({ srcFilePath, dstFilePath, err: e });
+                result.failed.push({ srcFilePath, dstFilePath, err: e });
             }
         }
-        return { data, err: null };
+        return { result, err: null };
     }
     catch (e) {
-        return { data: null, err: e };
+        return { result: null, err: e };
     }
 };
 export const flattenUnique = async (srcDir, dstDir, separator = "_", filters = {}) => {
@@ -48,24 +48,22 @@ export const flattenUnique = async (srcDir, dstDir, separator = "_", filters = {
         await validatetDirs(srcDir, dstDir);
     }
     catch (e) {
-        return { data: null, err: e };
+        return { result: null, err: e };
     }
     //validate separator
     valSeparator(separator);
     //get file paths under srcDir
-    const { data: files, err: e } = await getPaths(srcDir, "file", filters);
+    const { result: files, err: e } = await getPaths(srcDir, "file", filters);
     if (e)
-        return { data: null, err: e };
-    // console.log("getPaths", files);
-    //return format
-    const data = { succeeded: [], failed: [] };
+        return { result: null, err: e };
+    const result = { succeeded: [], failed: [] };
     //return if no files are found under srcDir
     if (files.length === 0)
-        return { data, err: null };
+        return { result, err: null };
     //get duplicate file paths under srcDir
-    const { data: duplicates, err } = await getDuplicates(srcDir, filters);
+    const { result: duplicates, err } = await getDuplicates(srcDir, filters);
     if (err)
-        return { data: null, err };
+        return { result: null, err: err };
     //create an array of duplicate files to be excluded from the output
     //Take out 1 file from each duplicate group so that 1 file from duplicate group will
     //remain in the output
@@ -82,16 +80,16 @@ export const flattenUnique = async (srcDir, dstDir, separator = "_", filters = {
             const dstFilePath = flattenFilePath(srcFilePath, separator, srcDir, absDstDir);
             try {
                 await fsp.copyFile(srcFilePath, dstFilePath);
-                data.succeeded.push({ srcFilePath, dstFilePath });
+                result.succeeded.push({ srcFilePath, dstFilePath });
             }
             catch (e) {
-                data.failed.push({ srcFilePath, dstFilePath, err: e });
+                result.failed.push({ srcFilePath, dstFilePath, err: e });
             }
         }
-        return { data, err: null };
+        return { result, err: null };
     }
     catch (e) {
-        return { data: null, err: e };
+        return { result: null, err: e };
     }
 };
 export const valSeparator = (separator) => {
@@ -113,7 +111,10 @@ export const flattenFilePath = (filePath, separator, srcDir, dstDir) => {
     const dstBaseName = path.basename(filePath);
     // delete the separator at the beginning of srcDirPath
     // then replace all the default path separators with passed separator
-    let dstFileNamePrefix = srcDirPath.slice(1).split(curSeparator).join(separator);
+    let dstFileNamePrefix = srcDirPath
+        .slice(1)
+        .split(curSeparator)
+        .join(separator);
     //if the length of filename exceeds 255 chars, shorten the filename.
     if (path.join(dstDir, dstFileNamePrefix, dstBaseName).length > 255) {
         //calculate the total length of the filepath
@@ -122,6 +123,8 @@ export const flattenFilePath = (filePath, separator, srcDir, dstDir) => {
         dstFileNamePrefix = `${dstFileNamePrefix.slice(0, dstFileNamePrefix.length - delCharCnt)}...`;
     }
     //concatenate dstFileNamePrefix and dstBaseName with separator
-    const dstFileName = dstFileNamePrefix.length > 0 ? `${dstFileNamePrefix}${separator}${dstBaseName}` : dstBaseName;
+    const dstFileName = dstFileNamePrefix.length > 0
+        ? `${dstFileNamePrefix}${separator}${dstBaseName}`
+        : dstBaseName;
     return path.join(dstDir, dstFileName);
 };

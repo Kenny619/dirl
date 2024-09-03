@@ -1,43 +1,29 @@
 {
 	"compilerOptions": {
 		"forceConsistentCasingInFileNames": true,
-
-		//type checking https://www.typescriptlang.org/tsconfig#Type_Checking_6248
 		"strict": true,
-
-		//Modules https://www.typescriptlang.org/tsconfig#Modules_6244
-
-		"moduleResolution": "Bundler", //https://www.typescriptlang.org/tsconfig/#moduleResolution
-		"module": "ESNext", //https://www.typescriptlang.org/docs/handbook/modules/theory.html#the-module-output-format
+		"moduleResolution": "node16",
+		"module": "Node16",
 		"types": ["vitest/globals"],
-		"baseUrl": ".",
+		"baseUrl": "./src",
 		"paths": {
-			"@src/*": ["./src/*"],
-			"@types/*": ["src/types/*"]
+			"@src/*": ["./*"]
 		},
-
-		//emit https://www.typescriptlang.org/tsconfig#Emit_6246
 		"removeComments": false,
 		"noEmitOnError": true,
 		"sourceMap": false,
 		"outDir": "dist",
-
-		//Interop Constraints https://www.typescriptlang.org/tsconfig#Interop_Constraints_6252
 		"esModuleInterop": true,
-
-		//Lib https://www.typescriptlang.org/tsconfig#lib
 		"target": "ES2022",
-
-		//Completeness https://www.typescriptlang.org/tsconfig#Completeness_6257
-		//"skipLibCheck": true
-		"allowJs": true
+		"allowJs": true,
+		"declaration": true,
+		"declarationMap": true,
+		"declarationDir": "./dist/types"
 	},
-
 	"ts-node": {
 		"esm": true,
 		"experimentalSpecifierResolution": "node"
 	},
-
-	"include": ["src"],
+	"include": ["src/**/*.ts"],
 	"exclude": ["node_modules"]
 }

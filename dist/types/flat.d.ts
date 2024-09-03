@@ -1,5 +1,5 @@
-import { flattenAll, flattenUnique } from "./utils/baseFlatten.js";
-class DirlFlatten {
+import type { Filters, MoveResults } from "./types/type.js";
+declare class DirlFlatten {
     /**
      * Copy files found under srcDir, flatten their directory structure and paste them to dstDir.  Subdirectory names are prepended to the file names with a separator.
      * @param  srcDir - The source directory.
@@ -8,12 +8,7 @@ class DirlFlatten {
      * @param  filters - {dir: string, file: string, ext: string}  Regular Expressions strings that match against direrctory path, filename, and file extension for selecting source files.   If multiple properties are specified, all properties must match for the file to pass the filter.
      * @returns - A promise that resolves to copy operation results.  If copy was done successfully, src and dst path are stored in "succeeded" property.  If copy failed, failed src and dest path along with Error object are stored in the "failed" property.
      */
-    async all(srcDir, dstDir, separator = "_", filters = {}) {
-        const { result, err } = await flattenAll(srcDir, dstDir, separator, filters);
-        if (err !== null)
-            throw err;
-        return result;
-    }
+    all(srcDir: string, dstDir: string, separator?: string, filters?: Filters): Promise<MoveResults>;
     /**
      * Copy unique files found under srcDir, flatten their directory structure and paste them to dstDir.  Subdirectory names are prepended to the file names with a separator.
 If duplicate files are found, only 1 file from the duplicate group is copied.
@@ -23,11 +18,7 @@ If duplicate files are found, only 1 file from the duplicate group is copied.
      * @param  filters - {dir: string, file: string, ext: string}  Regular Expressions strings that match against direrctory path, filename, and file extension for selecting source files.   If multiple properties are specified, all properties must match for the file to pass the filter.
      * @returns - A promise that resolves to copy operation results.  If copy was done successfully, src and dst path are stored in "succeeded" property.  If copy failed, failed src and dest path along with Error object are stored in the "failed" property.
      */
-    async unique(srcDir, dstDir, separator = "_", filters = {}) {
-        const { result, err } = await flattenUnique(srcDir, dstDir, separator, filters);
-        if (err !== null)
-            throw err;
-        return result;
-    }
+    unique(srcDir: string, dstDir: string, separator?: string, filters?: Filters): Promise<MoveResults>;
 }
 export default DirlFlatten;
+//# sourceMappingURL=flat.d.ts.map

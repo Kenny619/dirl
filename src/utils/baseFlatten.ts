@@ -3,7 +3,7 @@ import path from "node:path";
 import { getPaths } from "./base.js";
 import { validatetDirs } from "./validation.js";
 import { getDuplicates } from "./baseGet.js";
-
+import type { Filters, ReturnFormat, MoveResults } from "../types/type.js";
 export const flattenAll = async (
 	srcDir: string,
 	dstDir: string,
@@ -36,7 +36,12 @@ export const flattenAll = async (
 
 		//get filename to be used in the destination dir
 		for (const srcFilePath of files) {
-			const dstFilePath = flattenFilePath(srcFilePath, separator, srcDir, absDstDir);
+			const dstFilePath = flattenFilePath(
+				srcFilePath,
+				separator,
+				srcDir,
+				absDstDir,
+			);
 			try {
 				await fsp.copyFile(srcFilePath, dstFilePath);
 				result.succeeded.push({ srcFilePath, dstFilePath });
@@ -88,7 +93,9 @@ export const flattenUnique = async (
 	if (duplicates.length > 0) {
 		const excludeFileListAry = duplicates.map((files: string[]) => files.pop());
 		const excludeFileList = excludeFileListAry.flat();
-		uniqueFiles = files.filter((file: string) => !excludeFileList.includes(file));
+		uniqueFiles = files.filter(
+			(file: string) => !excludeFileList.includes(file),
+		);
 	}
 
 	//convert dstDir into an absolute path to align the format with srcDir
@@ -96,7 +103,12 @@ export const flattenUnique = async (
 
 	try {
 		for (const srcFilePath of uniqueFiles) {
-			const dstFilePath = flattenFilePath(srcFilePath, separator, srcDir, absDstDir);
+			const dstFilePath = flattenFilePath(
+				srcFilePath,
+				separator,
+				srcDir,
+				absDstDir,
+			);
 			try {
 				await fsp.copyFile(srcFilePath, dstFilePath);
 				result.succeeded.push({ srcFilePath, dstFilePath });
@@ -114,11 +126,17 @@ export const valSeparator = (separator: string): void => {
 	if (separator !== "_") {
 		//throw an error when  \, /, :, *, ?, ", <, >, | is used in separator
 		const invalidChars = new RegExp(/[\\/:*?"<>|]/);
-		if (invalidChars.test(separator)) throw new Error(`Separator:${separator} cannot be used in filenames.`);
+		if (invalidChars.test(separator))
+			throw new Error(`Separator:${separator} cannot be used in filenames.`);
 	}
 };
 
-export const flattenFilePath = (filePath: string, separator: string, srcDir: string, dstDir: string): string => {
+export const flattenFilePath = (
+	filePath: string,
+	separator: string,
+	srcDir: string,
+	dstDir: string,
+): string => {
 	//get path separator
 	const curSeparator = process.platform === "win32" ? "\\" : "/";
 
@@ -133,7 +151,10 @@ export const flattenFilePath = (filePath: string, separator: string, srcDir: str
 
 	// delete the separator at the beginning of srcDirPath
 	// then replace all the default path separators with passed separator
-	let dstFileNamePrefix = srcDirPath.slice(1).split(curSeparator).join(separator);
+	let dstFileNamePrefix = srcDirPath
+		.slice(1)
+		.split(curSeparator)
+		.join(separator);
 
 	//if the length of filename exceeds 255 chars, shorten the filename.
 	if (path.join(dstDir, dstFileNamePrefix, dstBaseName).length > 255) {
@@ -144,6 +165,9 @@ export const flattenFilePath = (filePath: string, separator: string, srcDir: str
 	}
 
 	//concatenate dstFileNamePrefix and dstBaseName with separator
-	const dstFileName = dstFileNamePrefix.length > 0 ? `${dstFileNamePrefix}${separator}${dstBaseName}` : dstBaseName;
+	const dstFileName =
+		dstFileNamePrefix.length > 0
+			? `${dstFileNamePrefix}${separator}${dstBaseName}`
+			: dstBaseName;
 	return path.join(dstDir, dstFileName);
 };

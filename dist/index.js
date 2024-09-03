@@ -12,4 +12,5 @@ const dirl = {
     copy,
     flatten,
 };
+export * from "./types/type.js";
 export default dirl;
