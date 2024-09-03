@@ -48,48 +48,48 @@ declare module "@kenny619/dirl" {
 		overwrite: (
 			srcDir: string,
 			dstDir: string,
-			filters: Filters,
+			filters?: Filters,
 		) => Promise<MoveResults>;
 		diff: (
 			srcDir: string,
 			dstDir: string,
-			filters: Filters,
+			filters?: Filters,
 		) => Promise<MoveResults>;
 		ifNew: (
 			srcDir: string,
 			dstDir: string,
-			filters: Filters,
+			filters?: Filters,
 		) => Promise<MoveResults>;
 	};
 	export type DirlCopyType = {
 		overwrite: (
 			srcDir: string,
 			dstDir: string,
-			filters: Filters,
+			filters?: Filters,
 		) => Promise<MoveResults>;
 		diff: (
 			srcDir: string,
 			dstDir: string,
-			filters: Filters,
+			filters?: Filters,
 		) => Promise<MoveResults>;
 		ifNew: (
 			srcDir: string,
 			dstDir: string,
-			filters: Filters,
+			filters?: Filters,
 		) => Promise<MoveResults>;
 	};
 	export type DirlFlattenType = {
 		all: (
 			srcDir: string,
 			dstDir: string,
-			separator: string,
-			filters: Filters,
+			separator?: string,
+			filters?: Filters,
 		) => Promise<MoveResults>;
 		unique: (
 			srcDir: string,
 			dstDir: string,
-			separator: string,
-			filters: Filters,
+			separator?: string,
+			filters?: Filters,
 		) => Promise<MoveResults>;
 	};
 	export type DirlType = {
