@@ -1,5 +1,5 @@
 import { transferFiles } from "./utils/baseTransfer.js";
-class DirlCopy {
+export class DirlCopy {
     /**
      * Copies files from srcDir to dstDir, overwriting files in dstDir if they exist.
      * @param  srcDir - The source directory.

@@ -1,5 +1,5 @@
 import type { Filters } from "./types/type.js";
-declare class DirlGet {
+export declare class DirlGet {
     /**
      * Returns a list of file paths under the root directory.
      * @param  rootDir - The root directory to search for files.
@@ -21,6 +21,13 @@ declare class DirlGet {
      * @returns  A promise that resolves to the number of files.
      */
     fileCount(rootDir: string, filters?: Filters): Promise<number>;
+    /**
+     * Returns the number of directories found under the root directory.
+     * @param  rootDir - The root directory to search for files.
+     * @param  filters - {dir: string, file: string, ext: string}  Regular Expressions strings that match against direrctory path, filename, and file extension for selecting source files.   If multiple properties are specified, all properties must match for the file to pass the filter.
+     * @returns  A promise that resolves to the number of directories.
+     */
+    dirCount(rootDir: string, filters?: Filters): Promise<number>;
     /**
      * Returns a list of file sizes under the root directory.
      * @param  rootDir - The root directory to search for files.
@@ -52,4 +59,3 @@ declare class DirlGet {
     duplicateFiles(rootDir: string, filters?: Filters): Promise<string[][]>;
 }
 export default DirlGet;
-//# sourceMappingURL=get.d.ts.map

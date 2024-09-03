@@ -1,12 +1,12 @@
-import DirlGet from "./get.js";
-import DirlMove from "./move.js";
-import DirlFlatten from "./flat.js";
-import DirlCopy from "./copy.js";
-const get = new DirlGet();
-const move = new DirlMove();
-const copy = new DirlCopy();
-const flatten = new DirlFlatten();
-const dirl = {
+import { DirlGet } from "./get.js";
+import { DirlMove } from "./move.js";
+import { DirlFlatten } from "./flat.js";
+import { DirlCopy } from "./copy.js";
+export const get = new DirlGet();
+export const move = new DirlMove();
+export const copy = new DirlCopy();
+export const flatten = new DirlFlatten();
+export const dirl = {
     get,
     move,
     copy,

@@ -1,7 +1,7 @@
 import { getFileSizes, getDirSizes, getDuplicates } from "./utils/baseGet.js";
 import { getPaths } from "./utils/base.js";
 import type { Filters } from "./types/type.js";
-class DirlGet {
+export class DirlGet {
 	/**
 	 * Returns a list of file paths under the root directory.
 	 * @param  rootDir - The root directory to search for files.
@@ -47,6 +47,20 @@ class DirlGet {
 		return result.length;
 	}
 
+	/**
+	 * Returns the number of directories found under the root directory.
+	 * @param  rootDir - The root directory to search for files.
+	 * @param  filters - {dir: string, file: string, ext: string}  Regular Expressions strings that match against direrctory path, filename, and file extension for selecting source files.   If multiple properties are specified, all properties must match for the file to pass the filter.
+	 * @returns  A promise that resolves to the number of directories.
+	 */
+	public async dirCount(
+		rootDir: string,
+		filters: Filters = {},
+	): Promise<number> {
+		const { result, err } = await getPaths(rootDir, "dir", filters);
+		if (err !== null) throw err as Error;
+		return result.length;
+	}
 	/**
 	 * Returns a list of file sizes under the root directory.
 	 * @param  rootDir - The root directory to search for files.

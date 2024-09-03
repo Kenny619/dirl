@@ -25,3 +25,75 @@ export type MoveResults = {
 	succeeded: { srcFilePath: string; dstFilePath: string }[];
 	failed: { srcFilePath: string; dstFilePath: string; err: Error }[];
 };
+
+export type DirlGetType = {
+	filePaths: (rootDir: string, filters?: Filters) => Promise<string[]>;
+	dirPaths: (rootDir: string, filters?: Filters) => Promise<string[]>;
+	fileCount: (rootDir: string, filters?: Filters) => Promise<number>;
+	dirCount: (rootDir: string, filters?: Filters) => Promise<number>;
+	fileSizes: (
+		rootDir: string,
+		filters?: Filters,
+		mode?: "int" | "str",
+	) => Promise<{ path: string; size: string | number }[]>;
+	dirSizes: (
+		rootDir: string,
+		filters?: Filters,
+		mode?: "int" | "str",
+	) => Promise<{ path: string; size: string | number }[]>;
+	duplicateFiles: (rootDir: string, filters?: Filters) => Promise<string[][]>;
+};
+export type DirlMoveType = {
+	overwrite: (
+		srcDir: string,
+		dstDir: string,
+		filters: Filters,
+	) => Promise<MoveResults>;
+	diff: (
+		srcDir: string,
+		dstDir: string,
+		filters: Filters,
+	) => Promise<MoveResults>;
+	ifNew: (
+		srcDir: string,
+		dstDir: string,
+		filters: Filters,
+	) => Promise<MoveResults>;
+};
+export type DirlCopyType = {
+	overwrite: (
+		srcDir: string,
+		dstDir: string,
+		filters: Filters,
+	) => Promise<MoveResults>;
+	diff: (
+		srcDir: string,
+		dstDir: string,
+		filters: Filters,
+	) => Promise<MoveResults>;
+	ifNew: (
+		srcDir: string,
+		dstDir: string,
+		filters: Filters,
+	) => Promise<MoveResults>;
+};
+export type DirlFlattenType = {
+	all: (
+		srcDir: string,
+		dstDir: string,
+		separator: string,
+		filters: Filters,
+	) => Promise<MoveResults>;
+	unique: (
+		srcDir: string,
+		dstDir: string,
+		separator: string,
+		filters: Filters,
+	) => Promise<MoveResults>;
+};
+export type DirlType = {
+	get: DirlGetType;
+	move: DirlMoveType;
+	copy: DirlCopyType;
+	flatten: DirlFlattenType;
+};

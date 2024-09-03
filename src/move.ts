@@ -1,6 +1,6 @@
 import { transferFiles } from "./utils/baseTransfer.js";
 import type { Filters, MoveResults } from "./types/type.js";
-class DirlMove {
+export class DirlMove {
 	/**
 	 * Moves files from srcDir to dstDir, overwriting files in dstDir if they exist.
 	 * @param  srcDir - The source directory.
@@ -67,5 +67,4 @@ class DirlMove {
 		return result;
 	}
 }
-
 export default DirlMove;
